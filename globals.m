@@ -1,0 +1,12 @@
+
+global Font_Size mu_earth 
+
+global SV_GLO_List SV_GLO  
+
+global Xist Xextr Xest 
+
+global Tmod dTmod tmod Nmod
+
+global start_handle hF_cont
+
+global options_solve
