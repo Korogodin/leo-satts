@@ -12,7 +12,7 @@ for i = (start_i+1):stop_i
     X.E(i) = fsolve(@(E)(E-X.e(i)*sin(E)  - X.M0(i)), X.E(i-1), options_solve);
 end
 
-% X.theta1 = atan( (sqrt(1-X.e.^2).*sin(X.E)) ./ (cos(X.E) - X.e) );
+X.theta1 = atan( (sqrt(1-X.e.^2).*sin(X.E)) ./ (cos(X.E) - X.e) );
 X.theta = 2*atan(sqrt((1+X.e)./(1-X.e)).*tan(X.E/2));
 for i = 2:Nmod
     while abs(X.theta(i) - X.theta(i-1)) > pi

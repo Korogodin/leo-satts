@@ -372,16 +372,92 @@ Xizm = Xist.x0 + randn(1, Nmod)*10;
 Yizm = Xist.y0 + randn(1, Nmod)*10;
 Zizm = Xist.z0 + randn(1, Nmod)*10;
 
-% for nt = 1:NT
-nt = 100;
-for i = 1:1000;
-    p(i) = p_orb + (i - 500)*10;
-    p_orb_extr = p(i);
-    [Xextr Yextr Zextr rextr] = get_orbit_X0(p_orb_extr, e_orb, theta(nt), Omega_orb, omega_p_orb, i_orb);
-    Ud(i) = -(X0(nt) - Xextr)*(Xextr/p_orb_extr)...
-            -(Y0(nt) - Yextr)*(Yextr/p_orb_extr)...
-            -(Z0(nt) - Zextr)*(Zextr/p_orb_extr);
+Xextr.r(1) = Xist.r(1);
+Xextr.i(1) = Xist.i(1);
+Xextr.u(1) = Xist.u(1);
+Xextr.lambda(1) = Xist.lambda(1);
+
+for i = 1:Nmod;
+
+%     Xextr.lambda(i) = Xist.lambda(i);
+%     Xextr.i(i) = Xist.i(i);
+    Xextr.r(i) = Xist.r(i);
+%     Xextr.u(i) = Xist.u(i);
+    
+    xyz = U3(-Xextr.lambda(i))*U1(-Xextr.i(i))*U3(-Xextr.u(i))*[Xextr.r(i); 0; 0];
+    Xextr.x0(i) = xyz(1); Xextr.y0(i) = xyz(2); Xextr.z0(i) = xyz(3);
+    
+%     if i < Nmod/2
+    Ud_r = -(Xizm(i) - Xextr.x0(i))*(Xextr.x0(i)/Xextr.r(i))...
+            -(Yizm(i) - Xextr.y0(i))*(Xextr.y0(i)/Xextr.r(i))...
+            -(Zizm(i) - Xextr.z0(i))*(Xextr.z0(i)/Xextr.r(i));
+        
+    Ud_i = -(Xizm(i) - Xextr.x0(i))*(Xextr.r(i)*sin(Xextr.u(i))*sin(Xextr.lambda(i))*sin(Xextr.i(i)))...
+            -(Yizm(i) - Xextr.y0(i))*(-Xextr.r(i)*sin(Xextr.u(i))*cos(Xextr.lambda(i))*sin(Xextr.i(i)))...
+            -(Zizm(i) - Xextr.z0(i))*(Xextr.r(i)*sin(Xextr.u(i))*cos(Xextr.i(i)));
+        
+    Ud_u =  -(Xizm(i) - Xextr.x0(i))*Xextr.r(i)*...
+                (-sin(Xextr.u(i))*cos(Xextr.lambda(i))...
+                        -cos(Xextr.u(i))*sin(Xextr.lambda(i))*cos(Xextr.i(i)))...
+            ...
+            -(Yizm(i) - Xextr.y0(i))*Xextr.r(i)*...
+                (-sin(Xextr.u(i))*sin(Xextr.lambda(i))...
+                        +cos(Xextr.u(i))*cos(Xextr.lambda(i))*cos(Xextr.i(i)))...
+            ...
+            -(Zizm(i) - Xextr.z0(i))*Xextr.r(i)*...
+                (cos(Xextr.u(i))*sin(Xextr.i(i)));
+            
+    Ud_lambda =  -(Xizm(i) - Xextr.x0(i))*Xextr.r(i)*...
+                (-cos(Xextr.u(i))*sin(Xextr.lambda(i))...
+                        -sin(Xextr.u(i))*cos(Xextr.lambda(i))*cos(Xextr.i(i)))...
+            ...
+            -(Yizm(i) - Xextr.y0(i))*Xextr.r(i)*...
+                (cos(Xextr.u(i))*cos(Xextr.lambda(i))...
+                        -sin(Xextr.u(i))*sin(Xextr.lambda(i))*cos(Xextr.i(i)))...
+            ...
+            -(Zizm(i) - Xextr.z0(i))*Xextr.r(i)*...
+                (0);            
+%     else
+%         Ud_r = 0;
+%         Ud_i = 0;
+%         Ud_u = 0;
+%         Ud_lambda = 0;
+%     end
+    Xest.r(i) = Xextr.r(i) - 1.0*Ud_r;   
+    Xextr.r(i+1) = Xest.r(i);
+
+%     Ud_i = 0;
+    Xest.i(i) = Xextr.i(i) - 1e-15*Ud_i;   
+    Xextr.i(i+1) = Xest.i(i);
+    
+    Xest.u(i) = Xextr.u(i) - Ud_u*1e-15;   
+    Xextr.u(i+1) = Xest.u(i);    
+    
+    Xest.lambda(i) = Xextr.lambda(i) - Ud_lambda*1e-15;   
+    Xextr.lambda(i+1) = Xest.lambda(i); 
+%     Xextr.lambda(i+1) = Xextr.lambda(i+1) + (Xextr.lambda(i+1)-Xextr.lambda(i));
+    
+    xyz = U3(-Xest.lambda(i))*U1(-Xest.i(i))*U3(-Xest.u(i))*[Xest.r(i); 0; 0];
+    Xest.x0(i) = xyz(1); Xest.y0(i) = xyz(2); Xest.z0(i) = xyz(3);    
+
 end
-% end
-hF = figure(hF + 1);
-plot(p - p_orb, Ud)  
+
+figure(next_hF)
+plot(tmod, Xist.r, tmod, Xest.r)
+ylabel('r, m')
+
+figure(next_hF)
+plot(tmod, Xist.i, tmod, Xest.i)
+ylabel('i, rad');
+
+figure(next_hF)
+plot(tmod, Xist.u, tmod, Xest.u)
+ylabel('u, rad');
+
+figure(next_hF)
+plot(tmod, Xist.lambda, tmod, Xest.lambda)
+ylabel('\lambda, rad');
+
+figure(next_hF)
+plot(tmod, sqrt((Xest.x0 - Xist.x0).^2 + (Xest.y0 - Xist.y0).^2 + (Xest.z0 - Xist.z0).^2))
+ylabel('\delta xyz, m');

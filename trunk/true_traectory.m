@@ -34,6 +34,5 @@ Xist.i_dot(2:end) = diff(Xist.i0) / dTmod;
 
 Xist.E = zeros(1, Nmod);
 Xist.x0 = nan(1, Nmod); Xist.y0 = nan(1, Nmod); Xist.z0 = nan(1, Nmod);
-options_solve = optimset('Display','off');  % Turn off display
 
 Xist = get_orbit_XYZ(Xist, 1, Nmod, pi);
