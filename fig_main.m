@@ -368,35 +368,66 @@ function pb_Track_Callback(hObject, eventdata, handles)
 
 globals;
 
-Xizm = Xist.x0 + randn(1, Nmod)*10;
-Yizm = Xist.y0 + randn(1, Nmod)*10;
-Zizm = Xist.z0 + randn(1, Nmod)*10;
+Ud_X_u = nan(1, Nmod);
+Ud_X_i = nan(1, Nmod);
+Ud_X_lambda = nan(1, Nmod);
+Ud_X_r = nan(1, Nmod);
 
+% Measurements
+Xizm = Xist.x0 + randn(1, Nmod)*2;
+Yizm = Xist.y0 + randn(1, Nmod)*2;
+Zizm = Xist.z0 + randn(1, Nmod)*2;
+
+% Init condition
 Xextr.r(1) = Xist.r(1);
+Xextr.d_r(1) = Xist.d_r(1);
 Xextr.i(1) = Xist.i(1);
+Xextr.d_i(1) = Xist.d_i(1);
 Xextr.u(1) = Xist.u(1);
+Xextr.d_u(1) = Xist.d_u(1);
 Xextr.lambda(1) = Xist.lambda(1);
+Xextr.d_lambda(1) = Xist.d_lambda(1);
 
+K_r = get_K2(0.001, dTmod)*0;
+K_lambda = get_K2(0.01, dTmod);
+K_u = get_K2(0.02, dTmod);
+K_i = get_K2(0.02, dTmod)*0;
+
+Sd_X_r = -1;
+Sd_X_lambda = -4e14;
+Sd_X_u = -5.95e+14;
+Sd_X_i = -3e+14;
+
+% Time loop
 for i = 1:Nmod;
 
+    % For test only
 %     Xextr.lambda(i) = Xist.lambda(i);
-%     Xextr.i(i) = Xist.i(i);
-    Xextr.r(i) = Xist.r(i);
-%     Xextr.u(i) = Xist.u(i);
+    Xextr.i(i) = Xist.i(i);
+    Xextr.r(i) = Xist.r(i); 
+    Xextr.u(i) = Xist.u(i);
+    
+    if (sin(Xextr.u(i))^2) > 0.05
+        Sd_X_i = -2*Xextr.r(i).^2.*sin(Xextr.u(i)).^2 / 2;
+    elseif (sin(Xextr.u(i))^2) > 0.01
+        Sd_X_i = -2*Xextr.r(i).^2.*1.^2 / 2;
+    else
+        Sd_X_i = -2*Xextr.r(i).^2.*100 / 2;
+    end
     
     xyz = U3(-Xextr.lambda(i))*U1(-Xextr.i(i))*U3(-Xextr.u(i))*[Xextr.r(i); 0; 0];
     Xextr.x0(i) = xyz(1); Xextr.y0(i) = xyz(2); Xextr.z0(i) = xyz(3);
     
 %     if i < Nmod/2
-    Ud_r = -(Xizm(i) - Xextr.x0(i))*(Xextr.x0(i)/Xextr.r(i))...
+    Ud_X_r(i) = -(Xizm(i) - Xextr.x0(i))*(Xextr.x0(i)/Xextr.r(i))...
             -(Yizm(i) - Xextr.y0(i))*(Xextr.y0(i)/Xextr.r(i))...
             -(Zizm(i) - Xextr.z0(i))*(Xextr.z0(i)/Xextr.r(i));
         
-    Ud_i = -(Xizm(i) - Xextr.x0(i))*(Xextr.r(i)*sin(Xextr.u(i))*sin(Xextr.lambda(i))*sin(Xextr.i(i)))...
+    Ud_X_i(i) = -(Xizm(i) - Xextr.x0(i))*(Xextr.r(i)*sin(Xextr.u(i))*sin(Xextr.lambda(i))*sin(Xextr.i(i)))...
             -(Yizm(i) - Xextr.y0(i))*(-Xextr.r(i)*sin(Xextr.u(i))*cos(Xextr.lambda(i))*sin(Xextr.i(i)))...
             -(Zizm(i) - Xextr.z0(i))*(Xextr.r(i)*sin(Xextr.u(i))*cos(Xextr.i(i)));
         
-    Ud_u =  -(Xizm(i) - Xextr.x0(i))*Xextr.r(i)*...
+    Ud_X_u(i) =  -(Xizm(i) - Xextr.x0(i))*Xextr.r(i)*...
                 (-sin(Xextr.u(i))*cos(Xextr.lambda(i))...
                         -cos(Xextr.u(i))*sin(Xextr.lambda(i))*cos(Xextr.i(i)))...
             ...
@@ -407,7 +438,7 @@ for i = 1:Nmod;
             -(Zizm(i) - Xextr.z0(i))*Xextr.r(i)*...
                 (cos(Xextr.u(i))*sin(Xextr.i(i)));
             
-    Ud_lambda =  -(Xizm(i) - Xextr.x0(i))*Xextr.r(i)*...
+    Ud_X_lambda(i) =  -(Xizm(i) - Xextr.x0(i))*Xextr.r(i)*...
                 (-cos(Xextr.u(i))*sin(Xextr.lambda(i))...
                         -sin(Xextr.u(i))*cos(Xextr.lambda(i))*cos(Xextr.i(i)))...
             ...
@@ -423,19 +454,31 @@ for i = 1:Nmod;
 %         Ud_u = 0;
 %         Ud_lambda = 0;
 %     end
-    Xest.r(i) = Xextr.r(i) - 1.0*Ud_r;   
-    Xextr.r(i+1) = Xest.r(i);
+    
 
-%     Ud_i = 0;
-    Xest.i(i) = Xextr.i(i) - 1e-15*Ud_i;   
-    Xextr.i(i+1) = Xest.i(i);
+    % Filter for [r; d_r]
+    Xest.r(i) = Xextr.r(i) + K_r(1)*Ud_X_r(i)/Sd_X_r;   
+    Xest.d_r(i) = Xextr.d_r(i) + K_r(2)*Ud_X_r(i)/Sd_X_r;   
+    Xextr.r(i+1) = Xest.r(i) + dTmod*Xest.d_r(i); 
+    Xextr.d_r(i+1) = Xest.d_r(i);
+
+    % Filter for [i; d_i]
+    Xest.i(i) = Xextr.i(i) + K_i(1)*Ud_X_i(i)/Sd_X_i;   
+    Xest.d_i(i) = Xextr.d_i(i) + K_i(2)*Ud_X_i(i)/Sd_X_i;   
+    Xextr.i(i+1) = Xest.i(i) + dTmod*Xest.d_i(i); 
+    Xextr.d_i(i+1) = Xest.d_i(i); 
     
-    Xest.u(i) = Xextr.u(i) - Ud_u*1e-15;   
-    Xextr.u(i+1) = Xest.u(i);    
+    % Filter for [u; d_u]
+    Xest.u(i) = Xextr.u(i) + K_u(1)*Ud_X_u(i)/Sd_X_u;   
+    Xest.d_u(i) = Xextr.d_u(i) + K_u(2)*Ud_X_u(i)/Sd_X_u;   
+    Xextr.u(i+1) = Xest.u(i) + dTmod*Xest.d_u(i); 
+    Xextr.d_u(i+1) = Xest.d_u(i);    
     
-    Xest.lambda(i) = Xextr.lambda(i) - Ud_lambda*1e-15;   
-    Xextr.lambda(i+1) = Xest.lambda(i); 
-%     Xextr.lambda(i+1) = Xextr.lambda(i+1) + (Xextr.lambda(i+1)-Xextr.lambda(i));
+    % Filter for [lambda; d_lambda]
+    Xest.lambda(i) = Xextr.lambda(i) + K_lambda(1)*Ud_X_lambda(i)/Sd_X_lambda;   
+    Xest.d_lambda(i) = Xextr.d_lambda(i) + K_lambda(2)*Ud_X_lambda(i)/Sd_X_lambda;   
+    Xextr.lambda(i+1) = Xest.lambda(i) + dTmod*Xest.d_lambda(i); 
+    Xextr.d_lambda(i+1) = Xest.d_lambda(i);
     
     xyz = U3(-Xest.lambda(i))*U1(-Xest.i(i))*U3(-Xest.u(i))*[Xest.r(i); 0; 0];
     Xest.x0(i) = xyz(1); Xest.y0(i) = xyz(2); Xest.z0(i) = xyz(3);    

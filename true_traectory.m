@@ -28,11 +28,18 @@ Xist.i0 = interp1(toe_eph, Ephem(:, 23), tmod, 'pchip');
 Xist.Crc = interp1(toe_eph, Ephem(:, 24), tmod, 'pchip');
 Xist.omega = interp1(toe_eph, Ephem(:, 25), tmod, 'pchip');
 Xist.Omega_dot = interp1(toe_eph, Ephem(:, 26), tmod, 'pchip');
-Xist.Omega_dot(2:end) = diff(Xist.Omega) / dTmod;
 Xist.i_dot = interp1(toe_eph, Ephem(:, 27), tmod, 'pchip');
-Xist.i_dot(2:end) = diff(Xist.i0) / dTmod;
 
 Xist.E = zeros(1, Nmod);
 Xist.x0 = nan(1, Nmod); Xist.y0 = nan(1, Nmod); Xist.z0 = nan(1, Nmod);
 
 Xist = get_orbit_XYZ(Xist, 1, Nmod, pi);
+
+Xist.d_lambda = diff(Xist.lambda) / dTmod;
+Xist.d_lambda(end+1) = Xist.d_lambda(end);
+Xist.d_i = diff(Xist.i) / dTmod;
+Xist.d_i(end+1) = Xist.d_i(end);
+Xist.d_u = diff(Xist.u) / dTmod;
+Xist.d_u(end+1) = Xist.d_u(end);
+Xist.d_r = diff(Xist.r) / dTmod;
+Xist.d_r(end+1) = Xist.d_r(end);
