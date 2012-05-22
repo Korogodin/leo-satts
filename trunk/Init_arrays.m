@@ -1,7 +1,7 @@
 SV_GLO_List = [];
 hF_cont = 0;
 
-% Xist
+% Xist - true values
 Xist.Crs = nan(1, Nmod);
 Xist.dn = nan(1, Nmod);
 Xist.M0 = nan(1, Nmod);
@@ -19,13 +19,17 @@ Xist.Crc = nan(1, Nmod);
 Xist.omega = nan(1, Nmod);
 Xist.Omega_dot = nan(1, Nmod);
 Xist.i_dot = nan(1, Nmod);
+Xist.d_lambda = nan(1, Nmod);
+Xist.d_i = nan(1, Nmod);
+Xist.d_u = nan(1, Nmod);
+Xist.d_r = nan(1, Nmod);
 Xist.E = zeros(1, Nmod);
 Xist.x0 = nan(1, Nmod); 
 Xist.y0 = nan(1, Nmod); 
 Xist.z0 = nan(1, Nmod);
 
-% Xextr
+% Xextr - extrapolation 
 Xextr = Xist;
 
-% Xest
+% Xest - estimation
 Xest = Xist;
