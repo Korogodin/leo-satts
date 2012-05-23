@@ -8,7 +8,7 @@ clc
 
 globals;
 
-Tmod = 12*60*60;  %[s]
+Tmod = 6*60*60;  %[s]
 dTmod = 15; % [s]
 tmod = 0:dTmod:Tmod;
 Nmod = length(tmod);
