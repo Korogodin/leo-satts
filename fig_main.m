@@ -390,8 +390,8 @@ Sd_V_lambda = nan(1, Nmod);
 Sd_X_lambda = nan(1, Nmod);
 
 % Measurements
-std_X = 10 / sqrt(dTmod) * 0;
-std_V = 0.01 / sqrt(dTmod) * 0;
+std_X = 10 / sqrt(dTmod) * 1;
+std_V = 0.01 / sqrt(dTmod) * 1;
 Xizm = Xist.x0 + randn(1, Nmod)*std_X;
 Yizm = Xist.y0 + randn(1, Nmod)*std_X;
 Zizm = Xist.z0 + randn(1, Nmod)*std_X;
@@ -552,11 +552,19 @@ for i = 1:Nmod;
         
         Xfsolve = fsolve(@(Xfs)(fsolve_XandV(Xfs, Xizm(i), Yizm(i), Zizm(i),...
              VXizm(i), VYizm(i), VZizm(i))), Xfsolve, options_solve);
-
+        
+%         if i<(Nmod/2)
         Ud_r = Xfsolve(1) - Xextr.r(i);
         Ud_u = Xfsolve(2) - Xextr.u(i);
         Ud_lambda = Xfsolve(3) - Xextr.lambda(i);
         Ud_i = Xfsolve(4) - Xextr.i(i);
+%         else
+%         Ud_r = 0;
+%         Ud_u = 0;
+%         Ud_lambda = 0;
+%         Ud_i = 0;
+%         end
+            
 
         % Filter for [r; d_r]
         Xest.r(i) = Xextr.r(i) + K_r(1)*Ud_r;   
@@ -585,24 +593,24 @@ for i = 1:Nmod;
         Xextr.d_lambda(i+1) = Xest.d_lambda(i);        
 
         
-        Xs_i = [Xextr.Cic(i), Xextr.Cis(i), Xextr.i0(i), Xextr.i_dot(i)];         
+%         Xs_i = [Xextr.Cic(i), Xextr.Cis(i), Xextr.i0(i), Xextr.i_dot(i)];         
        
-        Xest.dd_u(i) = Xist.dd_u(i);
-        if (i < 2)
-            Xs_i = fsolve(@(Xfs)(fsolve_Cic_and_Cis(Xfs, Xest.i(i), Xest.d_i(i), Xest.dd_i(i),...
-                 Xest.u(i), Xest.d_u(i), Xest.dd_u(i))), Xs_i, options_solve);
-        else
-            Xs_i = fsolve(@(Xfs)(fsolve_Cic_and_Cis(Xfs, Xest.i(i), Xest.d_i(i), Xest.dd_i(i),...
-                 Xest.u(i), Xest.d_u(i), Xest.dd_u(i)) + ...
-                 fsolve_Cic_and_Cis(Xfs, Xest.i(1), Xest.d_i(1), Xest.dd_i(1),...
-                 Xest.u(1), Xest.d_u(1), Xest.dd_u(1))), Xs_i, options_solve);
-        end
+%         Xest.dd_u(i) = Xist.dd_u(i);
+%         if (i < 2)
+%             Xs_i = fsolve(@(Xfs)(fsolve_Cic_and_Cis(Xfs, Xest.i(i), Xest.d_i(i), Xest.dd_i(i),...
+%                  Xest.u(i), Xest.d_u(i), Xest.dd_u(i))), Xs_i, options_solve);
+%         else
+%             Xs_i = fsolve(@(Xfs)(fsolve_Cic_and_Cis(Xfs, Xest.i(i), Xest.d_i(i), Xest.dd_i(i),...
+%                  Xest.u(i), Xest.d_u(i), Xest.dd_u(i)) + ...
+%                  fsolve_Cic_and_Cis(Xfs, Xest.i(1), Xest.d_i(1), Xest.dd_i(1),...
+%                  Xest.u(1), Xest.d_u(1), Xest.dd_u(1))), Xs_i, options_solve);
+%         end
          
          
-        Xest.Cic(i) = Xs_i(1); Xextr.Cic(i+1) = Xest.Cic(i);
-        Xest.Cis(i) = Xs_i(2); Xextr.Cis(i+1) = Xest.Cis(i);
-        Xest.i0(i) = Xs_i(3); Xextr.i0(i+1) = Xest.i0(i);
-        Xest.i_dot(i) = Xs_i(4); Xextr.i_dot(i+1) = Xest.i_dot(i);
+%         Xest.Cic(i) = Xs_i(1); Xextr.Cic(i+1) = Xest.Cic(i);
+%         Xest.Cis(i) = Xs_i(2); Xextr.Cis(i+1) = Xest.Cis(i);
+%         Xest.i0(i) = Xs_i(3); Xextr.i0(i+1) = Xest.i0(i);
+%         Xest.i_dot(i) = Xs_i(4); Xextr.i_dot(i+1) = Xest.i_dot(i);
     end
     
     xyz = U3(-Xest.lambda(i))*U1(-Xest.i(i))*U3(-Xest.u(i))*[Xest.r(i); 0; 0];
