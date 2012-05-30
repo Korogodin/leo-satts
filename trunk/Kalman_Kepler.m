@@ -14,15 +14,16 @@ Xextr4 = Xest;
 Xest4 = Xest;
  
 % Xextr.X = [e; p; theta; theta'; omega; Omega; Omega'; i; i'];
-Xextr4.X = [0; 25e6; Xest.theta(1); 0; Xest.omega(1); Xest.Omega(1); 0; Xest.i(1); 0];
+% Xextr4.X = [0; 25e6; Xest.theta(1); 0; Xest.omega(1); Xest.Omega(1); 0; Xest.i(1); 0];
+Xextr4.X = [Xest.e(1); Xest.p(1); Xest.theta(1); 0; Xest.omega(1); Xest.Omega(1); 0; Xest.i(1); 0];
 Xest4.X = Xextr4.X;
 % Xs =[0; 20e6; 0];
 
 std_e = 1e-6 / 15*dTmod;
 std_p = 100 / 15*dTmod;
 std_theta = 1e-3 / 15*dTmod;
-std_omega = 1e-3 / 15*dTmod;
-std_Omega = 1e-3 / 15*dTmod;
+std_omega = 1e-7 / 15*dTmod;
+std_Omega = 1e-5 / 15*dTmod;
 std_i = 1e-3 / 15*dTmod;
 
 Dest = [std_e^2*1e1     0           0                   0               0               0               0               0           0
@@ -54,7 +55,7 @@ Dg = [std_e^2 0       0           0           0           0
 
 GDgG = G*Dg*G';                        
 
-std_x = 10 / sqrt(dTmod) /10;
+std_x = 10 / sqrt(dTmod) /10 ;
 std_V = 0.01 / sqrt(dTmod);
 
 Dn = [std_x^2  0         0          0       0       0
@@ -73,18 +74,18 @@ c = [1 0 0 0 0 0 0 0 0;
  
 for i = 1:Nmod
     
-    x0_izm = Xist.x0(i) + std_x * randn(1,1);
-    y0_izm = Xist.y0(i) + std_x * randn(1,1);
-    z0_izm = Xist.z0(i) + std_x * randn(1,1);
-    Vx_izm = Xist.d_x0(i) + std_V * randn(1,1);    
-    Vy_izm = Xist.d_y0(i) + std_V * randn(1,1);
-    Vz_izm = Xist.d_z0(i) + std_V * randn(1,1);
+    x0_izm = Xist.x0(i) + std_x * randn(1,1) *1;
+    y0_izm = Xist.y0(i) + std_x * randn(1,1) *1;
+    z0_izm = Xist.z0(i) + std_x * randn(1,1) *1;
+    Vx_izm = Xist.d_x0(i) + std_V * randn(1,1) *1;    
+    Vy_izm = Xist.d_y0(i) + std_V * randn(1,1) *1;
+    Vz_izm = Xist.d_z0(i) + std_V * randn(1,1) *1;
 
     
 %     Xextr4.X(1) = Xest.e(i);
 %     Xextr4.X(2) = Xest.p(i);
-    Xextr4.X(3) = Xest.theta(i);
-    Xextr4.X(5) = Xest.omega(i);
+%     Xextr4.X(3) = Xest.theta(i);
+%     Xextr4.X(5) = Xest.omega(i);
     Xextr4.X(6) = Xest.Omega(i);
     Xextr4.X(8) = Xest.i(i);
 
@@ -113,8 +114,6 @@ for i = 1:Nmod
     
     dY = [x0_izm; y0_izm; z0_izm; Vx_izm; Vy_izm; Vz_izm] - ...
             [x0_extr; y0_extr; z0_extr; Vx_extr; Vy_extr; Vz_extr];
-    dY_ist = [Xist.x0(i); Xist.y0(i); Xist.z0(i); Xist.d_x0(i); Xist.d_y0(i); Xist.d_z0(i)] - ...
-            [x0_extr; y0_extr; z0_extr; Vx_extr; Vy_extr; Vz_extr];
         
     S0 = [NaN   NaN   1e-19     1e-19     1e-19     1e-19;       
           NaN   NaN   1e-19     1e-19     1e-19     1e-19; 
@@ -123,6 +122,7 @@ for i = 1:Nmod
           NaN   NaN   1e-19     1e-19     1e-19     1e-19;
           NaN   NaN   1e-19     1e-19     1e-19     1e-19];
       
+
     % Discriminator for e
     S0(1, 1) = - p * Sc_x / (1+e*cos(theta))^2 * cos(theta);  
     S0(2, 1) = - p * Sc_y / (1+e*cos(theta))^2 * cos(theta);
@@ -138,7 +138,7 @@ for i = 1:Nmod
     S0(4, 2) = - 0.5 * 1/p * munapi * (es *Sc_x - oec*Sc_Vx);
     S0(5, 2) = - 0.5 * 1/p * munapi * (es *Sc_y - oec*Sc_Vy);
     S0(6, 2) = - 0.5 * 1/p * munapi * (es *Sc_z + oec*Sc_Vz);
-
+    
     % Discriminator for theta  
     Sc_x_theta = - sin(u)*cos(Omega) - cos(u)*sin(Omega)*cos(i0);
     Sc_y_theta = - sin(u)*sin(Omega) + cos(u)*cos(Omega)*cos(i0);
@@ -157,21 +157,66 @@ for i = 1:Nmod
     S04(i) = S0(4,3);
     S05(i) = S0(5,3);
     S06(i) = S0(6,3);
-    
-%     S0(1, 3) = dY_ist(1) / (Xest.theta(i) - Xextr.theta(i));
-%     S0(2, 3) = dY_ist(2) / (Xest.theta(i) - Xextr.theta(i));
-%     S0(3, 3) = dY_ist(3) / (Xest.theta(i) - Xextr.theta(i));
-%     S0(4, 3) = dY_ist(4) / (Xest.theta(i) - Xextr.theta(i));
-%     S0(5, 3) = dY_ist(5) / (Xest.theta(i) - Xextr.theta(i));
-%     S0(6, 3) = dY_ist(6) / (Xest.theta(i) - Xextr.theta(i));
 
+    dx = 0.001;
+    [x0_extr2 y0_extr2 z0_extr2 Vx_extr2 Vy_extr2 Vz_extr2] = ...
+        get_vector_XV( e, p, theta+dx, omega, Omega, i0);
+    dS = [x0_extr2; y0_extr2; z0_extr2; Vx_extr2; Vy_extr2; Vz_extr2] - ...
+            [x0_extr; y0_extr; z0_extr; Vx_extr; Vy_extr; Vz_extr];
+        
+    S0(1, 3) = dS(1) / dx;
+    S0(2, 3) = dS(2) / dx;
+    S0(3, 3) = dS(3) / dx;
+    S0(4, 3) = dS(4) / dx;
+    S0(5, 3) = dS(5) / dx;
+    S0(6, 3) = dS(6) / dx;
+    
     S01_ist(i) = S0(1,3);
     S02_ist(i) = S0(2,3);
     S03_ist(i) = S0(3,3);
     S04_ist(i) = S0(4,3);
     S05_ist(i) = S0(5,3);
     S06_ist(i) = S0(6,3);
-
+    
+    dx = 0.001;
+    [x0_extr2 y0_extr2 z0_extr2 Vx_extr2 Vy_extr2 Vz_extr2] = ...
+        get_vector_XV( e, p, theta, omega+dx, Omega, i0);
+    dS = [x0_extr2; y0_extr2; z0_extr2; Vx_extr2; Vy_extr2; Vz_extr2] - ...
+            [x0_extr; y0_extr; z0_extr; Vx_extr; Vy_extr; Vz_extr];
+        
+    S0(1, 4) = dS(1) / dx;
+    S0(2, 4) = dS(2) / dx;
+    S0(3, 4) = dS(3) / dx;
+    S0(4, 4) = dS(4) / dx;
+    S0(5, 4) = dS(5) / dx;
+    S0(6, 4) = dS(6) / dx;    
+    
+    dx = 0.001;
+    [x0_extr2 y0_extr2 z0_extr2 Vx_extr2 Vy_extr2 Vz_extr2] = ...
+        get_vector_XV( e, p, theta, omega, Omega+dx, i0);
+    dS = [x0_extr2; y0_extr2; z0_extr2; Vx_extr2; Vy_extr2; Vz_extr2] - ...
+            [x0_extr; y0_extr; z0_extr; Vx_extr; Vy_extr; Vz_extr];
+        
+    S0(1, 5) = dS(1) / dx;
+    S0(2, 5) = dS(2) / dx;
+    S0(3, 5) = dS(3) / dx;
+    S0(4, 5) = dS(4) / dx;
+    S0(5, 5) = dS(5) / dx;
+    S0(6, 5) = dS(6) / dx;  
+    
+    dx = 0.001;
+    [x0_extr2 y0_extr2 z0_extr2 Vx_extr2 Vy_extr2 Vz_extr2] = ...
+        get_vector_XV( e, p, theta, omega, Omega, i0+dx);
+    dS = [x0_extr2; y0_extr2; z0_extr2; Vx_extr2; Vy_extr2; Vz_extr2] - ...
+            [x0_extr; y0_extr; z0_extr; Vx_extr; Vy_extr; Vz_extr];
+        
+%     S0(1, 6) = dS(1) / dx;
+%     S0(2, 6) = dS(2) / dx;
+%     S0(3, 6) = dS(3) / dx;
+%     S0(4, 6) = dS(4) / dx;
+%     S0(5, 6) = dS(5) / dx;
+%     S0(6, 6) = dS(6) / dx;  
+    
     S = (c'*S0')';
     
     Dextr = F*Dest*F' + GDgG;
@@ -197,9 +242,9 @@ for i = 1:Nmod
     Xest4.e(i) = Xest4.X(1);
     Xest4.p(i) = Xest4.X(2);
     Xest4.theta(i) = Xest4.X(3);    
-%     Xest4.omega(i) = Xest4.X(5);
-%     Xest4.Omega(i) = Xest4.X(6);
-%     Xest4.i(i) = Xest4.X(8);
+    Xest4.omega(i) = Xest4.X(5);
+    Xest4.Omega(i) = Xest4.X(6);
+    Xest4.i(i) = Xest4.X(8);
 
     [Xest4.x0(i) Xest4.y0(i) Xest4.z0(i) Xest4.Vx(i) Xest4.Vy(i) Xest4.Vz(i)] = ...
         get_vector_XV( Xest4.e(i), Xest4.p(i), Xest4.theta(i), Xest4.omega(i), Xest4.Omega(i), Xest4.i(i));
@@ -228,7 +273,25 @@ hF = figure(hF+1);
 subplot(2,1,1); plot(tmod, Xest4.theta, tmod, Xest.theta, tmod, Xist.theta)
 ylabel('\theta');
 subplot(2,1,2); plot(tmod, Xest4.theta - Xest.theta)
-ylabel('d theta');
+ylabel('d \theta');
+
+hF = figure(hF+1);
+subplot(2,1,1); plot(tmod, Xest4.omega, tmod, Xest.omega, tmod, Xist.omega)
+ylabel('\omega');
+subplot(2,1,2); plot(tmod, Xest4.omega - Xest.omega)
+ylabel('d \omega');
+
+hF = figure(hF+1);
+subplot(2,1,1); plot(tmod, Xest4.Omega, tmod, Xest.Omega, tmod, Xist.Omega)
+ylabel('\Omega');
+subplot(2,1,2); plot(tmod, Xest4.Omega - Xest.Omega)
+ylabel('d \Omega');
+
+hF = figure(hF+1);
+subplot(2,1,1); plot(tmod, Xest4.i, tmod, Xest.i, tmod, Xist.i)
+ylabel('i');
+subplot(2,1,2); plot(tmod, Xest4.i - Xest.i)
+ylabel('d i');
 
 hF = figure(hF+1);
 subplot(2,1,1); 
