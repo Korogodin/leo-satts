@@ -4,8 +4,9 @@ fprintf('True traectory calculation:\n');
 fprintf('- read and interpolation...');
 % t_eph = Ephem(:, 4)*24*60*60 + Ephem(:, 5)*60*60 + Ephem(:, 6)*60 + + Ephem(:, 7)*60;
 % t_eph = t_eph - t_eph(1);
+
 toe_eph = Ephem(:, 19); toe_eph = toe_eph - toe_eph(1);
-Xist.Crs = interp1(toe_eph, Ephem(:, 12), tmod, 'pchip');
+Xist.Crs = interp1(toe_eph, Ephem(:, 12), tmod, 'pchip')/ N_r;
 Xist.dn = interp1(toe_eph, Ephem(:, 13), tmod, 'pchip');
 for i = 2:length(toe_eph)
     while abs(Ephem(i, 14) - Ephem(i-1, 14)) > pi
@@ -21,14 +22,13 @@ Xist.Cuc = interp1(toe_eph, Ephem(:, 15), tmod, 'pchip');
 Xist.e = interp1(toe_eph, Ephem(:, 16), tmod, 'pchip');
 Xist.Cus = interp1(toe_eph, Ephem(:, 17), tmod, 'pchip');
 Xist.sqrtA = interp1(toe_eph, Ephem(:, 18), tmod, 'pchip');
-N_r =  26 / (1+6.5);
 Xist.A = Xist.sqrtA.^2 / N_r;
 % toe = interp1(toe_eph, Ephem(:, 19), tmod, 'linear');
 Xist.Cic = interp1(toe_eph, Ephem(:, 20), tmod, 'pchip');
 Xist.Omega = interp1(toe_eph, Ephem(:, 21), tmod, 'pchip');
 Xist.Cis = interp1(toe_eph, Ephem(:, 22), tmod, 'pchip');
 Xist.i0 = interp1(toe_eph, Ephem(:, 23), tmod, 'pchip');
-Xist.Crc = interp1(toe_eph, Ephem(:, 24), tmod, 'pchip');
+Xist.Crc = interp1(toe_eph, Ephem(:, 24), tmod, 'pchip')/ N_r;
 Xist.omega = interp1(toe_eph, Ephem(:, 25), tmod, 'pchip');
 Xist.Omega_dot = interp1(toe_eph, Ephem(:, 26), tmod, 'pchip');
 Xist.i_dot = interp1(toe_eph, Ephem(:, 27), tmod, 'pchip');
@@ -40,7 +40,9 @@ Xist.x0 = nan(1, Nmod); Xist.y0 = nan(1, Nmod); Xist.z0 = nan(1, Nmod);
 
 Xist = get_orbit_XYZ(Xist, 1, Nmod, pi);
 
-dTmod = dTmod / (N_r^(3/2));
+tmod = tmod / (N_r^(3/2));
+Tmod = tmod / (N_r^(3/2));
+dTmod = T;
 
 Xist.d_omega = diff(Xist.omega) / dTmod;
 Xist.d_omega(end+1) = Xist.d_omega(end);
@@ -108,8 +110,5 @@ Xist.dd_p(end+1) = Xist.dd_p(end);
 % Xist.d_y0(end+1) = Xist.d_y0(end);
 % Xist.d_z0 = diff(Xist.z0) / dTmod;
 % Xist.d_z0(end+1) = Xist.d_z0(end);
-
-tmod = tmod / (N_r^(3/2));
-
 
 fprintf('complete\n');
