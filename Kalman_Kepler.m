@@ -23,26 +23,17 @@ Xest4 = Xest;
 
 p_mult = 5e7; % To simplify matrix calculations - reducing the dynamic range
 
-% Xextr.X = [e; p; theta; theta'; omega; Omega; Omega'; i; i'];
 % Xextr4.X =  [Xest.e(1); Xest.p(1)/p_mult; Xest.theta(1); 0; Xest.omega(1); 0; Xest.Omega(1); 0; Xest.i(1); 0];
-Xextr4.X =  [0.01; 0; 26e6/p_mult; 0; 1; Xest.d_theta(1)*1.1; 0; 0; 0; Xest.d_Omega(1)*0.9; Xest.i(1)*0.9; Xest.d_i(1)];
-% Xextr4.X = [0.01; 25e6/p_mult; 0; 1; 0; 0; 0; 0; 1; 0];
+Xextr4.X =  [0.01; 0; Xest.p(1)/p_mult; 0; 1; Xest.d_theta(1)*1.1; 0; 0; 0; Xest.d_Omega(1)*0.9; Xest.i(1)*0.9; Xest.d_i(1)];
 Xest4.X = Xextr4.X;
-% Xs =[0; 20e6; 0];
 
-% std_e = 1e-6 / 15*dTmod;
-% std_p = 100 / 15*dTmod / p_mult;
-% std_theta = 1e-3 / 15*dTmod;
-% std_omega = 1e-7 / 15*dTmod;
-% std_Omega = 1e-5 / 15*dTmod;
-% std_i = 1e-3 / 15*dTmod;
-
-std_e = 5e-5 / 15*dTmod;
-std_p = 0.01 / 15*dTmod / p_mult;
-std_theta = 1e-7 / 15*dTmod;
-std_omega = 1e-9 / 15*dTmod;
-std_Omega = 1e-8 / 15*dTmod;
-std_i = 1e-10 / 15*dTmod;
+% RMS of shaping noises
+std_e = 5e-6 / 15*dTmod;
+std_p = 0.1 / 15*dTmod / p_mult; % [m]
+std_theta = 1e-5 / 15*dTmod; % [rad]
+std_omega = 1e-6 / 15*dTmod; % [rad]
+std_Omega = 1e-8 / 15*dTmod; % [rad]
+std_i = 1e-10 / 15*dTmod; % [rad]
 
 Dest = [std_e^2*1e1     0           0           0               0               0               0               0               0               0               0           0
             0           std_e^2*1e2 0           0               0               0               0               0               0               0               0           0
@@ -107,28 +98,12 @@ for i = 1:Nmod
 
     
 %     Xextr4.X(1) = Xest.e(i);
-%     Xextr4.X(2) = Xest.p(i)/p_mult;
-%     Xextr4.X(3) = Xest.theta(i);
-%     Xextr4.X(5) = Xest.omega(i);
-%     Xextr4.X(6) = Xest.Omega(i);
-%     Xextr4.X(8) = Xest.i(i);
+%     Xextr4.X(3) = Xest.p(i)/p_mult;
+%     Xextr4.X(5) = Xest.theta(i);
+%     Xextr4.X(7) = Xest.omega(i);
+%     Xextr4.X(9) = Xest.Omega(i);
+%     Xextr4.X(11) = Xest.i(i);
 
-    if Xextr4.X(1) >= 0;
-        e = Xextr4.X(1);
-        theta = mod_pm_pi(Xextr4.X(5));    
-        omega = mod_pm_pi(Xextr4.X(7));
-    else
-        e = -Xextr4.X(1);
-        theta = mod_pm_pi(-Xextr4.X(5));    
-        omega = mod_pm_pi(-Xextr4.X(7));
-    end    
-    p = Xextr4.X(3) * p_mult;
-%     if p < 0
-%         p = 0.1;
-%     end
-    Omega = mod_pm_pi(Xextr4.X(9));
-    i0 = mod_pm_pi(Xextr4.X(11));
-    
     e = Xextr4.X(1);
     p = Xextr4.X(3) * p_mult;
     theta = Xextr4.X(5);
@@ -136,9 +111,6 @@ for i = 1:Nmod
     Omega = Xextr4.X(9);
     i0 = Xextr4.X(11);
 
-    if imag(p)||imag(e)||imag(theta)||imag(omega)||imag(Omega)||imag(i0)
-        a
-    end
     munapi = sqrt(mu_earth / p);
     u = theta + omega;
     
@@ -247,10 +219,7 @@ for i = 1:Nmod
     S04_ist(i) = S0(4,4);
     S05_ist(i) = S0(5,4);
     S06_ist(i) = S0(6,4); 
-
-%     S0(4,4) = munapi * (e*sin(omega)*Sc_x_omega - oec*Sc_Vx_omega);
-%     S0(5,4) = munapi * (e*sin(omega)*Sc_y_omega - oec*Sc_Vy_omega);
-%     S0(6,4) = munapi * (e*sin(omega)*Sc_z_omega + oec*Sc_Vz_omega);    
+ 
     
     % Discriminator for Omega
     Sc_x_Omega = -cos(u)*sin(Omega) - sin(u)*cos(Omega)*cos(i0);
@@ -309,29 +278,13 @@ for i = 1:Nmod
 %     S0(6, 6) = dS(6) / dx;  
     
     S = (c'*S0')';
-    
-    if imag(S)
-        a
-    end
-    
+   
     Dextr = F*Dest*F' + GDgG;
     t1 = S'/Dn*S;
     t2 = inv(Dextr);
-%     if sum(sum(isnan(t1 + t2)))
-%         a 
-%     end
     Dest = inv(t1 + t2); 
-
-    
-%     if sum(sum(isnan(Dest)))
-%         a 
-%     end
-    
+   
     Xest4.X = Xextr4.X + Dest*S'/Dn*dY;
-    
-%     if sum(sum(isnan(Xest4.X)))
-%         a 
-%     end
     Xextr4.X = F*Xest4.X;
     
     if Xest4.X(1) > 0;
@@ -346,13 +299,6 @@ for i = 1:Nmod
     Xest4.p(i) = Xest4.X(3)*p_mult;
     Xest4.Omega(i) = mod_pm_pi(Xest4.X(9));
     Xest4.i(i) = mod_pm_pi(Xest4.X(11));
-    
-    Xest4.e(i) = Xest4.X(1);
-    Xest4.theta(i) = Xest4.X(5);    
-    Xest4.omega(i) = Xest4.X(7);
-    Xest4.p(i) = Xest4.X(3)*p_mult;
-    Xest4.Omega(i) = Xest4.X(9);
-    Xest4.i(i) = Xest4.X(11);    
     
     [Xest4.x0(i) Xest4.y0(i) Xest4.z0(i) Xest4.Vx(i) Xest4.Vy(i) Xest4.Vz(i)] = ...
         get_vector_XV( Xest4.e(i), Xest4.p(i), Xest4.theta(i), Xest4.omega(i), Xest4.Omega(i), Xest4.i(i));
