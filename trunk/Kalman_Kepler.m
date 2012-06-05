@@ -29,11 +29,11 @@ Xest4.X = Xextr4.X;
 
 % RMS of shaping noises
 std_e = 5e-6 / 15*dTmod;
-std_p = 0.1 / 15*dTmod / p_mult; % [m]
+std_p = 1 / 15*dTmod / p_mult; % [m]
 std_theta = 1e-5 / 15*dTmod; % [rad]
 std_omega = 1e-6 / 15*dTmod; % [rad]
 std_Omega = 1e-8 / 15*dTmod; % [rad]
-std_i = 1e-10 / 15*dTmod; % [rad]
+std_i = 1e-8 / 15*dTmod; % [rad]
 
 Dest = [std_e^2*1e1     0           0           0               0               0               0               0               0               0               0           0
             0           std_e^2*1e2 0           0               0               0               0               0               0               0               0           0
@@ -324,19 +324,19 @@ subplot(2,1,2); plot(tmod, Xest4.p - Xest.p)
 ylabel('d p');
 
 hF = figure(hF+1);
-subplot(3,1,1); plot(tmod, Xest4.theta, tmod, Xest.theta, tmod, Xist.theta)
+subplot(3,1,1); plot(tmod, Xest4.theta, tmod, mod_pm_pi(Xest.theta), tmod, mod_pm_pi(Xist.theta))
 ylabel('\theta');
-subplot(3,1,2); plot(tmod, Xest4.theta - Xest.theta)
+subplot(3,1,2); plot(tmod, mod_pm_pi(Xest4.theta - Xest.theta))
 ylabel('d \theta');
-subplot(3,1,3); plot(tmod, Xest4.theta - Xist.theta)
+subplot(3,1,3); plot(tmod, mod_pm_pi(Xest4.theta - Xist.theta))
 ylabel('d \theta vs ist');
 
 hF = figure(hF+1);
 subplot(3,1,1); plot(tmod, Xest4.omega, tmod, Xest.omega, tmod, Xist.omega)
 ylabel('\omega');
-subplot(3,1,2); plot(tmod, Xest4.omega - Xest.omega)
+subplot(3,1,2); plot(tmod, mod_pm_pi(Xest4.omega - Xest.omega))
 ylabel('d \omega');
-subplot(3,1,3); plot(tmod, Xest4.omega - Xist.omega)
+subplot(3,1,3); plot(tmod, mod_pm_pi(Xest4.omega - Xist.omega))
 ylabel('d \omega vs ist');
 
 hF = figure(hF+1);
