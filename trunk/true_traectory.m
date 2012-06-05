@@ -21,7 +21,8 @@ Xist.Cuc = interp1(toe_eph, Ephem(:, 15), tmod, 'pchip');
 Xist.e = interp1(toe_eph, Ephem(:, 16), tmod, 'pchip');
 Xist.Cus = interp1(toe_eph, Ephem(:, 17), tmod, 'pchip');
 Xist.sqrtA = interp1(toe_eph, Ephem(:, 18), tmod, 'pchip');
-Xist.A = Xist.sqrtA.^2;
+N_r =  26 / (1+6.5);
+Xist.A = Xist.sqrtA.^2 / N_r;
 % toe = interp1(toe_eph, Ephem(:, 19), tmod, 'linear');
 Xist.Cic = interp1(toe_eph, Ephem(:, 20), tmod, 'pchip');
 Xist.Omega = interp1(toe_eph, Ephem(:, 21), tmod, 'pchip');
@@ -38,6 +39,8 @@ Xist.E = zeros(1, Nmod);
 Xist.x0 = nan(1, Nmod); Xist.y0 = nan(1, Nmod); Xist.z0 = nan(1, Nmod);
 
 Xist = get_orbit_XYZ(Xist, 1, Nmod, pi);
+
+dTmod = dTmod / (N_r^(3/2));
 
 Xist.d_omega = diff(Xist.omega) / dTmod;
 Xist.d_omega(end+1) = Xist.d_omega(end);
@@ -94,5 +97,19 @@ Xist.dd_p(end+1) = Xist.dd_p(end);
     get_vector_VxVyVz(Xist.r, Xist.d_r, Xist.lambda, ...
                       Xist.i, Xist.u, Xist.d_u, ...
                       Xist.x0, Xist.y0, Xist.z0);
+% 
+% Xist.x0 = Xist.x0 / N_r;
+% Xist.y0 = Xist.y0 / N_r;
+% Xist.z0 = Xist.z0 / N_r;
+
+% Xist.d_x0 = diff(Xist.x0) / dTmod;
+% Xist.d_x0(end+1) = Xist.d_x0(end);
+% Xist.d_y0 = diff(Xist.y0) / dTmod;
+% Xist.d_y0(end+1) = Xist.d_y0(end);
+% Xist.d_z0 = diff(Xist.z0) / dTmod;
+% Xist.d_z0(end+1) = Xist.d_z0(end);
+
+tmod = tmod / (N_r^(3/2));
+
 
 fprintf('complete\n');
