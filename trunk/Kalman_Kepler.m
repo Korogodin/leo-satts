@@ -1,24 +1,32 @@
+clc
 
+% Filter step
 T = dTmod;
-F = [1  0   0   0   0   0   0   0   0   0;
-     0  1   0   0   0   0   0   0   0   0;
-     0  0   1   T   0   0   0   0   0   0;
-     0  0   0   1   0   0   0   0   0   0;
-     0  0   0   0   1   T   0   0   0   0;
-     0  0   0   0   0   1   0   0   0   0;
-     0  0   0   0   0   0   1   T   0   0;
-     0  0   0   0   0   0   0   1   0   0;
-     0  0   0   0   0   0   0   0   1   T;
-     0  0   0   0   0   0   0   0   0   1];
 
+% Evolutionary matrix
+F = [1   T   0   0   0   0   0   0   0   0   0   0;
+     0   1   0   0   0   0   0   0   0   0   0   0;
+     0   0   1   T   0   0   0   0   0   0   0   0;
+     0   0   0   1   0   0   0   0   0   0   0   0;
+     0   0   0   0   1   T   0   0   0   0   0   0;
+     0   0   0   0   0   1   0   0   0   0   0   0;
+     0   0   0   0   0   0   1   T   0   0   0   0;
+     0   0   0   0   0   0   0   1   0   0   0   0;
+     0   0   0   0   0   0   0   0   1   T   0   0;
+     0   0   0   0   0   0   0   0   0   1   0   0;
+     0   0   0   0   0   0   0   0   0   0   1   T;
+     0   0   0   0   0   0   0   0   0   0   0   1];
+
+% Memory allocation 
 Xextr4 = Xest;
 Xest4 = Xest;
 
-p_mult = 5e6;
+p_mult = 5e7; % To simplify matrix calculations - reducing the dynamic range
 
 % Xextr.X = [e; p; theta; theta'; omega; Omega; Omega'; i; i'];
-Xextr4.X =  [Xest.e(1); Xest.p(1)/p_mult; Xest.theta(1); 0; Xest.omega(1); 0; Xest.Omega(1); 0; Xest.i(1); 0];
-% Xextr4.X = [0.1; 25e6; 0; 0; 0; 0; 0; 1; 0];
+% Xextr4.X =  [Xest.e(1); Xest.p(1)/p_mult; Xest.theta(1); 0; Xest.omega(1); 0; Xest.Omega(1); 0; Xest.i(1); 0];
+Xextr4.X =  [0.01; 0; 26e6/p_mult; 0; 1; Xest.d_theta(1)*1.1; 0; 0; 0; Xest.d_Omega(1)*0.9; Xest.i(1)*0.9; Xest.d_i(1)];
+% Xextr4.X = [0.01; 25e6/p_mult; 0; 1; 0; 0; 0; 0; 1; 0];
 Xest4.X = Xextr4.X;
 % Xs =[0; 20e6; 0];
 
@@ -29,25 +37,29 @@ Xest4.X = Xextr4.X;
 % std_Omega = 1e-5 / 15*dTmod;
 % std_i = 1e-3 / 15*dTmod;
 
-std_e = 5e-7 / 15*dTmod;
-std_p = 10 / 15*dTmod / p_mult;
+std_e = 5e-5 / 15*dTmod;
+std_p = 0.01 / 15*dTmod / p_mult;
 std_theta = 1e-7 / 15*dTmod;
 std_omega = 1e-9 / 15*dTmod;
 std_Omega = 1e-8 / 15*dTmod;
 std_i = 1e-10 / 15*dTmod;
 
-Dest = [std_e^2*1e1     0           0                   0               0               0               0               0               0           0
-            0           std_p^2*1e2 0                   0               0               0               0               0               0           0
-            0           0           std_theta^2*1e2     0               0               0               0               0               0           0
-            0           0           0                   std_theta^2*1e2 0               0               0               0               0           0
-            0           0           0                   0               std_omega^2*1e2 0               0               0               0           0
-            0           0           0                   0               0               std_omega^2*1e2 0               0               0           0
-            0           0           0                   0               0               0               std_Omega^2*1e2 0               0           0
-            0           0           0                   0               0               0               0               std_Omega^2*1e2 0           0
-            0           0           0                   0               0               0               0               0               std_i^2*1e2 0
-            0           0           0                   0               0               0               0               0               0           std_i^2*1e2];
+Dest = [std_e^2*1e1     0           0           0               0               0               0               0               0               0               0           0
+            0           std_e^2*1e2 0           0               0               0               0               0               0               0               0           0
+            0           0           std_p^2*1e3 0               0               0               0               0               0               0               0           0
+            0           0           0           std_p^2*1e4     0               0               0               0               0               0               0           0
+            0           0           0           0               std_theta^2*1e2 0               0               0               0               0               0           0
+            0           0           0           0               0               std_theta^2*1e0 0               0               0               0               0           0
+            0           0           0           0               0               0               std_omega^2*1e2 0               0               0               0           0
+            0           0           0           0               0               0               0               std_omega^2*1e2 0               0               0           0
+            0           0           0           0               0               0               0               0               std_Omega^2*1e2 0               0           0
+            0           0           0           0               0               0               0               0               0               std_Omega^2*1e2 0           0
+            0           0           0           0               0               0               0               0               0               0               std_i^2*1e2 0
+            0           0           0           0               0               0               0               0               0               0               0           std_i^2*1e2];
 
-G =  [1 0 0 0 0 0;
+G =  [0 0 0 0 0 0;
+      1 0 0 0 0 0;
+      0 0 0 0 0 0;
       0 1 0 0 0 0;
       0 0 0 0 0 0;
       0 0 1 0 0 0;
@@ -77,12 +89,12 @@ Dn = [std_x^2  0         0          0       0       0
       0        0         0          0       std_V^2 0
       0        0         0          0       0       std_V^2];
  
-c = [1 0 0 0 0 0 0 0 0 0;
-     0 1 0 0 0 0 0 0 0 0;
-     0 0 1 0 0 0 0 0 0 0;
-     0 0 0 0 1 0 0 0 0 0;
-     0 0 0 0 0 0 1 0 0 0; 
-     0 0 0 0 0 0 0 0 1 0];
+c = [1 0 0 0 0 0 0 0 0 0 0 0;
+     0 0 1 0 0 0 0 0 0 0 0 0;
+     0 0 0 0 1 0 0 0 0 0 0 0;
+     0 0 0 0 0 0 1 0 0 0 0 0;
+     0 0 0 0 0 0 0 0 1 0 0 0; 
+     0 0 0 0 0 0 0 0 0 0 1 0];
  
 for i = 1:Nmod
     
@@ -101,12 +113,32 @@ for i = 1:Nmod
 %     Xextr4.X(6) = Xest.Omega(i);
 %     Xextr4.X(8) = Xest.i(i);
 
+    if Xextr4.X(1) >= 0;
+        e = Xextr4.X(1);
+        theta = mod_pm_pi(Xextr4.X(5));    
+        omega = mod_pm_pi(Xextr4.X(7));
+    else
+        e = -Xextr4.X(1);
+        theta = mod_pm_pi(-Xextr4.X(5));    
+        omega = mod_pm_pi(-Xextr4.X(7));
+    end    
+    p = Xextr4.X(3) * p_mult;
+%     if p < 0
+%         p = 0.1;
+%     end
+    Omega = mod_pm_pi(Xextr4.X(9));
+    i0 = mod_pm_pi(Xextr4.X(11));
+    
     e = Xextr4.X(1);
-    p = Xextr4.X(2) * p_mult;
-    theta = Xextr4.X(3);
-    omega = Xextr4.X(5);
-    Omega = Xextr4.X(7);
-    i0 = Xextr4.X(9);
+    p = Xextr4.X(3) * p_mult;
+    theta = Xextr4.X(5);
+    omega = Xextr4.X(7);
+    Omega = Xextr4.X(9);
+    i0 = Xextr4.X(11);
+
+    if imag(p)||imag(e)||imag(theta)||imag(omega)||imag(Omega)||imag(i0)
+        a
+    end
     munapi = sqrt(mu_earth / p);
     u = theta + omega;
     
@@ -278,6 +310,10 @@ for i = 1:Nmod
     
     S = (c'*S0')';
     
+    if imag(S)
+        a
+    end
+    
     Dextr = F*Dest*F' + GDgG;
     t1 = S'/Dn*S;
     t2 = inv(Dextr);
@@ -300,17 +336,24 @@ for i = 1:Nmod
     
     if Xest4.X(1) > 0;
         Xest4.e(i) = Xest4.X(1);
-        Xest4.theta(i) = mod_pm_pi(Xest4.X(3));    
-        Xest4.omega(i) = mod_pm_pi(Xest4.X(5));
+        Xest4.theta(i) = mod_pm_pi(Xest4.X(5));    
+        Xest4.omega(i) = mod_pm_pi(Xest4.X(7));
     else
         Xest4.e(i) = -Xest4.X(1);
-        Xest4.theta(i) = mod_pm_pi(-Xest4.X(3));    
-        Xest4.omega(i) = mod_pm_pi(-Xest4.X(5));
+        Xest4.theta(i) = mod_pm_pi(-Xest4.X(5));    
+        Xest4.omega(i) = mod_pm_pi(-Xest4.X(7));
     end    
-    Xest4.p(i) = Xest4.X(2)*p_mult;
-    Xest4.Omega(i) = mod_pm_pi(Xest4.X(7));
-    Xest4.i(i) = mod_pm_pi(Xest4.X(9));
-
+    Xest4.p(i) = Xest4.X(3)*p_mult;
+    Xest4.Omega(i) = mod_pm_pi(Xest4.X(9));
+    Xest4.i(i) = mod_pm_pi(Xest4.X(11));
+    
+    Xest4.e(i) = Xest4.X(1);
+    Xest4.theta(i) = Xest4.X(5);    
+    Xest4.omega(i) = Xest4.X(7);
+    Xest4.p(i) = Xest4.X(3)*p_mult;
+    Xest4.Omega(i) = Xest4.X(9);
+    Xest4.i(i) = Xest4.X(11);    
+    
     [Xest4.x0(i) Xest4.y0(i) Xest4.z0(i) Xest4.Vx(i) Xest4.Vy(i) Xest4.Vz(i)] = ...
         get_vector_XV( Xest4.e(i), Xest4.p(i), Xest4.theta(i), Xest4.omega(i), Xest4.Omega(i), Xest4.i(i));
     
@@ -322,14 +365,14 @@ end
 
 hF = 0;
 hF = figure(hF+1);
-subplot(2,1,1); plot(tmod, Xest.e, tmod, Xest4.e, tmod, Xist.e)
+subplot(2,1,1); plot(tmod, Xest4.e, tmod, Xest.e, tmod, Xist.e)
 ylabel('e');
 subplot(2,1,2); plot(tmod, Xest4.e - Xest.e)
 ylabel('d e');
 
 
 hF = figure(hF+1);
-subplot(2,1,1); plot(tmod, Xest.p, tmod, Xest4.p, tmod, Xist.p)
+subplot(2,1,1); plot(tmod, Xest4.p, tmod, Xest.p, tmod, Xist.p)
 ylabel('p');
 subplot(2,1,2); plot(tmod, Xest4.p - Xest.p)
 ylabel('d p');
