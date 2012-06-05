@@ -12,18 +12,27 @@ F = [1  0   0   0   0   0   0   0   0;
 
 Xextr4 = Xest;
 Xest4 = Xest;
- 
+
+p_mult = 5e6;
+
 % Xextr.X = [e; p; theta; theta'; omega; Omega; Omega'; i; i'];
-% Xextr4.X = [0; 25e6; Xest.theta(1); 0; Xest.omega(1); Xest.Omega(1); 0; Xest.i(1); 0];
-Xextr4.X = [0.1; 25e6; 0; 0; 0; 0; 0; 1; 0];
+Xextr4.X =  [Xest.e(1); Xest.p(1)/p_mult; Xest.theta(1); 0; Xest.omega(1); Xest.Omega(1); 0; Xest.i(1); 0];
+% Xextr4.X = [0.1; 25e6; 0; 0; 0; 0; 0; 1; 0];
 Xest4.X = Xextr4.X;
 % Xs =[0; 20e6; 0];
 
+% std_e = 1e-6 / 15*dTmod;
+% std_p = 100 / 15*dTmod / p_mult;
+% std_theta = 1e-3 / 15*dTmod;
+% std_omega = 1e-7 / 15*dTmod;
+% std_Omega = 1e-5 / 15*dTmod;
+% std_i = 1e-3 / 15*dTmod;
+
 std_e = 5e-7 / 15*dTmod;
-std_p = 10 / 15*dTmod;
-std_theta = 1e-8 / 15*dTmod;
-std_omega = 3e-5 / 15*dTmod;
-std_Omega = 1e-9 / 15*dTmod;
+std_p = 10 / 15*dTmod / p_mult;
+std_theta = 1e-7 / 15*dTmod;
+std_omega = 3e-7 / 15*dTmod;
+std_Omega = 1e-8 / 15*dTmod;
 std_i = 1e-10 / 15*dTmod;
 
 Dest = [std_e^2*1e1     0           0                   0               0               0               0               0           0
@@ -90,7 +99,7 @@ for i = 1:Nmod
 %     Xextr4.X(8) = Xest.i(i);
 
     e = Xextr4.X(1);
-    p = Xextr4.X(2);
+    p = Xextr4.X(2) * p_mult;
     theta = Xextr4.X(3);
     omega = Xextr4.X(5);
     Omega = Xextr4.X(6);
@@ -132,6 +141,7 @@ for i = 1:Nmod
     S0(4, 2) = - 0.5 * 1/p * munapi * (es *Sc_x - oec*Sc_Vx);
     S0(5, 2) = - 0.5 * 1/p * munapi * (es *Sc_y - oec*Sc_Vy);
     S0(6, 2) = - 0.5 * 1/p * munapi * (es *Sc_z + oec*Sc_Vz);
+    S0(:,2) = S0(:,2) * p_mult;
     
     % Discriminator for theta  
     Sc_x_theta = - sin(u)*cos(Omega) - cos(u)*sin(Omega)*cos(i0);
@@ -183,7 +193,7 @@ for i = 1:Nmod
     S05(i) = S0(5,4);
     S06(i) = S0(6,4);
     
-    dx = 1e-13;
+    dx = 1e-6;
     [x0_extr2 y0_extr2 z0_extr2 Vx_extr2 Vy_extr2 Vz_extr2] = ...
         get_vector_XV( e, p, theta, omega+dx, Omega, i0);
     dS = [x0_extr2; y0_extr2; z0_extr2; Vx_extr2; Vy_extr2; Vz_extr2] - ...
@@ -268,29 +278,35 @@ for i = 1:Nmod
     Dextr = F*Dest*F' + GDgG;
     t1 = S'/Dn*S;
     t2 = inv(Dextr);
-    if sum(sum(isnan(t1 + t2)))
-        a 
-    end
+%     if sum(sum(isnan(t1 + t2)))
+%         a 
+%     end
     Dest = inv(t1 + t2); 
 
     
-    if sum(sum(isnan(Dest)))
-        a 
-    end
+%     if sum(sum(isnan(Dest)))
+%         a 
+%     end
     
     Xest4.X = Xextr4.X + Dest*S'/Dn*dY;
     
-    if sum(sum(isnan(Xest4.X)))
-        a 
-    end
+%     if sum(sum(isnan(Xest4.X)))
+%         a 
+%     end
     Xextr4.X = F*Xest4.X;
     
-    Xest4.e(i) = Xest4.X(1);
-    Xest4.p(i) = Xest4.X(2);
-    Xest4.theta(i) = Xest4.X(3);    
-    Xest4.omega(i) = Xest4.X(5);
-    Xest4.Omega(i) = Xest4.X(6);
-    Xest4.i(i) = Xest4.X(8);
+    if Xest4.X(1) > 0;
+        Xest4.e(i) = Xest4.X(1);
+        Xest4.theta(i) = mod_pm_pi(Xest4.X(3));    
+        Xest4.omega(i) = mod_pm_pi(Xest4.X(5));
+    else
+        Xest4.e(i) = -Xest4.X(1);
+        Xest4.theta(i) = mod_pm_pi(-Xest4.X(3));    
+        Xest4.omega(i) = mod_pm_pi(-Xest4.X(5));
+    end    
+    Xest4.p(i) = Xest4.X(2)*p_mult;
+    Xest4.Omega(i) = mod_pm_pi(Xest4.X(6));
+    Xest4.i(i) = mod_pm_pi(Xest4.X(8));
 
     [Xest4.x0(i) Xest4.y0(i) Xest4.z0(i) Xest4.Vx(i) Xest4.Vy(i) Xest4.Vz(i)] = ...
         get_vector_XV( Xest4.e(i), Xest4.p(i), Xest4.theta(i), Xest4.omega(i), Xest4.Omega(i), Xest4.i(i));
@@ -350,11 +366,17 @@ ylabel('d i vs ist');
 
 hF = figure(hF+1);
 subplot(2,1,1); 
-plot(tmod, sqrt((Xest.x0 - Xist.x0).^2 + (Xest.y0 - Xist.y0).^2 + (Xest.z0 - Xist.z0).^2))
+plot(tmod(1:Nmod-1), sqrt((Xest.x0(1:Nmod-1) - Xist.x0(1:Nmod-1)).^2 + (Xest.y0(1:Nmod-1) - Xist.y0(1:Nmod-1)).^2 + (Xest.z0(1:Nmod-1) - Xist.z0(1:Nmod-1)).^2))
 ylabel('\delta xyz 1, m');
 subplot(2,1,2); 
-plot(tmod, sqrt((Xest4.x0 - Xist.x0).^2 + (Xest4.y0 - Xist.y0).^2 + (Xest4.z0 - Xist.z0).^2))
+plot(tmod(1:Nmod-1), sqrt((Xest4.x0(1:Nmod-1) - Xist.x0(1:Nmod-1)).^2 + (Xest4.y0(1:Nmod-1) - Xist.y0(1:Nmod-1)).^2 + (Xest4.z0(1:Nmod-1) - Xist.z0(1:Nmod-1)).^2))
 ylabel('\delta xyz 4, m');
+
+ErrX = mean(sqrt((Xest4.x0(2500:Nmod-1) - Xist.x0(2500:Nmod-1)).^2));
+ErrY = mean(sqrt((Xest4.y0(2500:Nmod-1) - Xist.y0(2500:Nmod-1)).^2));
+ErrZ = mean(sqrt((Xest4.z0(2500:Nmod-1) - Xist.z0(2500:Nmod-1)).^2));
+
+fprintf('ErrX = %.1f m, ErrX = %.1f m, ErrX = %.1f m\n', ErrX, ErrY, ErrZ);
 
 hF = figure(hF+1);
 subplot(3,2,1); plot(tmod, S01, tmod, S01_ist)
