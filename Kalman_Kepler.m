@@ -1,14 +1,15 @@
 
 T = dTmod;
-F = [1  0   0   0   0   0   0   0   0;
-     0  1   0   0   0   0   0   0   0;
-     0  0   1   T   0   0   0   0   0;
-     0  0   0   1   0   0   0   0   0;
-     0  0   0   0   1   0   0   0   0;
-     0  0   0   0   0   1   T   0   0;
-     0  0   0   0   0   0   1   0   0;
-     0  0   0   0   0   0   0   1   T;
-     0  0   0   0   0   0   0   0   1];
+F = [1  0   0   0   0   0   0   0   0   0;
+     0  1   0   0   0   0   0   0   0   0;
+     0  0   1   T   0   0   0   0   0   0;
+     0  0   0   1   0   0   0   0   0   0;
+     0  0   0   0   1   T   0   0   0   0;
+     0  0   0   0   0   1   0   0   0   0;
+     0  0   0   0   0   0   1   T   0   0;
+     0  0   0   0   0   0   0   1   0   0;
+     0  0   0   0   0   0   0   0   1   T;
+     0  0   0   0   0   0   0   0   0   1];
 
 Xextr4 = Xest;
 Xest4 = Xest;
@@ -16,7 +17,7 @@ Xest4 = Xest;
 p_mult = 5e6;
 
 % Xextr.X = [e; p; theta; theta'; omega; Omega; Omega'; i; i'];
-Xextr4.X =  [Xest.e(1); Xest.p(1)/p_mult; Xest.theta(1); 0; Xest.omega(1); Xest.Omega(1); 0; Xest.i(1); 0];
+Xextr4.X =  [Xest.e(1); Xest.p(1)/p_mult; Xest.theta(1); 0; Xest.omega(1); 0; Xest.Omega(1); 0; Xest.i(1); 0];
 % Xextr4.X = [0.1; 25e6; 0; 0; 0; 0; 0; 1; 0];
 Xest4.X = Xextr4.X;
 % Xs =[0; 20e6; 0];
@@ -31,24 +32,26 @@ Xest4.X = Xextr4.X;
 std_e = 5e-7 / 15*dTmod;
 std_p = 10 / 15*dTmod / p_mult;
 std_theta = 1e-7 / 15*dTmod;
-std_omega = 3e-7 / 15*dTmod;
+std_omega = 1e-9 / 15*dTmod;
 std_Omega = 1e-8 / 15*dTmod;
 std_i = 1e-10 / 15*dTmod;
 
-Dest = [std_e^2*1e1     0           0                   0               0               0               0               0           0
-            0           std_p^2*1e2 0                   0               0               0               0               0           0
-            0           0           std_theta^2*1e2     0               0               0               0               0           0
-            0           0           0                   std_theta^2*1e2 0               0               0               0           0
-            0           0           0                   0               std_omega^2*1e2 0               0               0           0
-            0           0           0                   0               0               std_Omega^2*1e2 0               0           0
-            0           0           0                   0               0               0               std_Omega^2*1e2 0           0
-            0           0           0                   0               0               0               0               std_i^2*1e2 0
-            0           0           0                   0               0               0               0               0           std_i^2*1e2];
+Dest = [std_e^2*1e1     0           0                   0               0               0               0               0               0           0
+            0           std_p^2*1e2 0                   0               0               0               0               0               0           0
+            0           0           std_theta^2*1e2     0               0               0               0               0               0           0
+            0           0           0                   std_theta^2*1e2 0               0               0               0               0           0
+            0           0           0                   0               std_omega^2*1e2 0               0               0               0           0
+            0           0           0                   0               0               std_omega^2*1e2 0               0               0           0
+            0           0           0                   0               0               0               std_Omega^2*1e2 0               0           0
+            0           0           0                   0               0               0               0               std_Omega^2*1e2 0           0
+            0           0           0                   0               0               0               0               0               std_i^2*1e2 0
+            0           0           0                   0               0               0               0               0               0           std_i^2*1e2];
 
 G =  [1 0 0 0 0 0;
       0 1 0 0 0 0;
       0 0 0 0 0 0;
       0 0 1 0 0 0;
+      0 0 0 0 0 0;
       0 0 0 1 0 0;
       0 0 0 0 0 0;
       0 0 0 0 1 0;
@@ -74,12 +77,12 @@ Dn = [std_x^2  0         0          0       0       0
       0        0         0          0       std_V^2 0
       0        0         0          0       0       std_V^2];
  
-c = [1 0 0 0 0 0 0 0 0;
-     0 1 0 0 0 0 0 0 0;
-     0 0 1 0 0 0 0 0 0;
-     0 0 0 0 1 0 0 0 0;
-     0 0 0 0 0 1 0 0 0; 
-     0 0 0 0 0 0 0 1 0];
+c = [1 0 0 0 0 0 0 0 0 0;
+     0 1 0 0 0 0 0 0 0 0;
+     0 0 1 0 0 0 0 0 0 0;
+     0 0 0 0 1 0 0 0 0 0;
+     0 0 0 0 0 0 1 0 0 0; 
+     0 0 0 0 0 0 0 0 1 0];
  
 for i = 1:Nmod
     
@@ -92,7 +95,7 @@ for i = 1:Nmod
 
     
 %     Xextr4.X(1) = Xest.e(i);
-%     Xextr4.X(2) = Xest.p(i);
+%     Xextr4.X(2) = Xest.p(i)/p_mult;
 %     Xextr4.X(3) = Xest.theta(i);
 %     Xextr4.X(5) = Xest.omega(i);
 %     Xextr4.X(6) = Xest.Omega(i);
@@ -102,8 +105,8 @@ for i = 1:Nmod
     p = Xextr4.X(2) * p_mult;
     theta = Xextr4.X(3);
     omega = Xextr4.X(5);
-    Omega = Xextr4.X(6);
-    i0 = Xextr4.X(8);
+    Omega = Xextr4.X(7);
+    i0 = Xextr4.X(9);
     munapi = sqrt(mu_earth / p);
     u = theta + omega;
     
@@ -199,9 +202,9 @@ for i = 1:Nmod
     dS = [x0_extr2; y0_extr2; z0_extr2; Vx_extr2; Vy_extr2; Vz_extr2] - ...
             [x0_extr; y0_extr; z0_extr; Vx_extr; Vy_extr; Vz_extr];
         
-%     S0(1, 4) = dS(1) / dx;
-%     S0(2, 4) = dS(2) / dx;
-%     S0(3, 4) = dS(3) / dx;
+    S0(1, 4) = dS(1) / dx;
+    S0(2, 4) = dS(2) / dx;
+    S0(3, 4) = dS(3) / dx;
     S0(4, 4) = dS(4) / dx;
     S0(5, 4) = dS(5) / dx;
     S0(6, 4) = dS(6) / dx;    
@@ -213,7 +216,7 @@ for i = 1:Nmod
     S05_ist(i) = S0(5,4);
     S06_ist(i) = S0(6,4); 
 
-    S0(4,4) = munapi * (e*sin(omega)*Sc_x_omega - oec*Sc_Vx_omega);
+%     S0(4,4) = munapi * (e*sin(omega)*Sc_x_omega - oec*Sc_Vx_omega);
 %     S0(5,4) = munapi * (e*sin(omega)*Sc_y_omega - oec*Sc_Vy_omega);
 %     S0(6,4) = munapi * (e*sin(omega)*Sc_z_omega + oec*Sc_Vz_omega);    
     
@@ -305,8 +308,8 @@ for i = 1:Nmod
         Xest4.omega(i) = mod_pm_pi(-Xest4.X(5));
     end    
     Xest4.p(i) = Xest4.X(2)*p_mult;
-    Xest4.Omega(i) = mod_pm_pi(Xest4.X(6));
-    Xest4.i(i) = mod_pm_pi(Xest4.X(8));
+    Xest4.Omega(i) = mod_pm_pi(Xest4.X(7));
+    Xest4.i(i) = mod_pm_pi(Xest4.X(9));
 
     [Xest4.x0(i) Xest4.y0(i) Xest4.z0(i) Xest4.Vx(i) Xest4.Vy(i) Xest4.Vz(i)] = ...
         get_vector_XV( Xest4.e(i), Xest4.p(i), Xest4.theta(i), Xest4.omega(i), Xest4.Omega(i), Xest4.i(i));
