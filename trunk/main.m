@@ -3,26 +3,26 @@ try
 end
 
 close all
-clear
+clear 
 clc
-
 globals;
 
-h = 600e3;
-r_e = 6371e3;
-N_r = 2.6561e+07 / (r_e + h);
+addpath([pwd '/func/tracking']);
+addpath([pwd '/func/interface']);
 
-Tmod = 24*60*60;  %[s]
-T = 1;
-dTmod = T * N_r^(3/2); % [s]
-tmod = 0:dTmod:Tmod;
-Nmod = length(tmod);
+Tmod = 3.2*60*60;  %[s], duration of the simulation
 
-Init_arrays; % Memory allocation
+hF_cont = 0; % Figure's handles
 Font_Size = 8; % Font size for output interface
 mu_earth = 3.9860044e14; % Gravity constant
 options_solve = optimset('Display','off');  % Turn off display for fsolve
 
-true_traectory;
+load TrueTrajectory.mat
+Nmod = fix(Tmod/T);
+if Nmod > Nmod_max
+    Nmod = Nmod_max;
+    Tmod = (Nmod-1)*T;
+end
+resize_arrays; % resize arrays for new Tmod
 
-handle_fig_main = fig_main();
+handle_fig_main = fig_main(); % open GUI form
