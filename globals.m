@@ -3,7 +3,7 @@ global Font_Size mu_earth
 
 global SV_GLO_List SV_GLO  
 
-global Xist Xextr Xest 
+global Xist Xextr Xest Xest_won
 
 global Tmod dTmod tmod Nmod
 

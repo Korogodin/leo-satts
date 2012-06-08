@@ -22,7 +22,7 @@ function varargout = fig_main(varargin)
 
 % Edit the above text to modify the response to help fig_main
 
-% Last Modified by GUIDE v2.5 07-Jun-2012 11:47:00
+% Last Modified by GUIDE v2.5 08-Jun-2012 15:21:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -110,7 +110,6 @@ function pb_Run_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 plot_axes_Earth(handles, 0);
-
    
 
 %> ======================================================================
@@ -167,23 +166,6 @@ xlim([-3e7 3e7]); ylim([-3e7 3e7]); zlim([-3e7 3e7]);
 title(hA, 'Space View');
     
 
-% --- Executes on button press in pb_addSV.
-function pb_addSV_Callback(hObject, eventdata, handles)
-% hObject    handle to pb_addSV (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-globals;
-
-p_orb = 19100e3 + 6500e3;
-e_orb = 0.01;
-i_orb = pi/3;
-omega_p_orb = 0;
-
-SV_GLO = SV(p_orb, e_orb, 0, 2*pi/3, omega_p_orb, i_orb, 'SV GLONASS 1', 'SV_GLO(1)');
-SV_GLO(2) = SV(p_orb, e_orb, 0, pi/3, omega_p_orb, i_orb, 'SV GLONASS 2', 'SV_GLO(2)');
-
-
-
 % --- Executes on mouse press over axes background.
 function axes_3D_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to axes_3D (see GCBO)
@@ -203,151 +185,13 @@ dig = get(hObject, 'Tag'); dig = dig(end-1:end);
 plot_axes_OE(handles, next_hF(), dig)
 
 
-%> ======================================================================
-%> @brief plot Orbit elements graphs
-%> @param handles Main handles struct
-%> @param hF Flag (handle) for separate window
-%> @param hA Indexies of axes (2-el string)
-% ======================================================================
-function plot_axes_OE(handles, hF, ij)
-globals;
-
-if hF 
-    figure(hF); 
-    hA = gca;
-    XLab = 't, s';
-else
-    hA = eval(['handles.axes_OE_' ij]);
-    set(handles.fig_main,'CurrentAxes', hA)
-    XLab = '';
-    YLab = '';
-end
-
-X1 = tmod; X2 = tmod; X3 = tmod; X4 = tmod;
-Y1 = nan(1, Nmod); Y2 = nan(1, Nmod); Y3 = nan(1, Nmod); Y4 = nan(1, Nmod);
-switch ij
-    case '11'
-        Y1 = Xist.sqrtA;
-        YLab = 'a^{1/2}, m^{1/2}';        
-    case '12'
-        Y1 = Xist.e;
-        YLab = 'e';
-    case '13'
-        Y1 = Xist.Crc;
-        Y2 = Xist.Crs;
-        YLab = 'C_{rc}, C_{rs}, m';        
-    case '14'
-        Y1 = Xist.r;
-        Y4 = Xist.A;
-        YLab = 'r, a, m'; 
-    case '15'
-    case '21'
-        Y1 = Xist.i0;
-        YLab = 'i_0, rad';
-    case '22'
-        Y1 = Xist.i_dot;
-        YLab = 'i_{dot}, rad/s';        
-    case '23'
-        Y1 = Xist.Cic;
-        Y2 = Xist.Cis;
-        YLab = 'C_{ic}, C_{is}, rad';        
-    case '24'
-        Y1 = Xist.i;
-        YLab = 'i, rad';
-    case '25'
-    case '31'
-        Y1 = Xist.M0;
-        Y2 = Xist.E;
-        Y3 = Xist.theta;
-        YLab = 'M_0, E, \theta, rad';        
-    case '32'
-        Y1 = Xist.omega;
-        YLab = '\omega, rad';
-    case '33'
-        Y1 = Xist.Cuc;
-        Y2 = Xist.Cus;
-        YLab = 'C_{uc}, C_{us}, rad';         
-    case '34'
-        Y1 = Xist.u;
-        YLab = 'u, rad'; 
-    case '35'
-    case '41'
-        Y1 = Xist.Omega;
-        YLab = '\Omega, rad';
-    case '42'
-        Y1 = Xist.Omega_dot;
-        YLab = '\Omega_{dot}, rad/s';        
-    case '43'
-    case '44'
-        Y1 = Xist.x0;
-        Y2 = Xist.y0;
-        Y3 = Xist.z0;
-        YLab = 'x_0, y_0, z_0, m'; 
-    case '45'
-        
-end
-
-if isnan(Y4(1))
-    if isnan(Y3(1))
-        if isnan(Y2(1))
-            if isnan(Y1(1))
-                set(hA, 'Visible', 'off');
-            else
-                plot(hA, X1, Y1);
-                set(hA, 'Visible', 'on');
-            end
-        else
-            plot(hA, X1, Y1, X2, Y2);
-            set(hA, 'Visible', 'on');
-        end
-    else
-        plot(hA, X1, Y1, X2, Y2, X3, Y3);
-        set(hA, 'Visible', 'on');
-    end
-else
-    plot(hA, X1, Y1, X2, Y2, X3, Y3, X4, Y4);
-    set(hA, 'Visible', 'on');
-end
-ly = ylabel(YLab);
-lx = xlabel(XLab);
-grid(hA, 'on');
-
-if ~hF
-    set(hA, 'XTick', []);
-    set(hA, 'YTick', []);
-    set(ly, 'FontSize', Font_Size);
-end
-
-
-% --- Executes on button press in pb_replot.
-function pb_replot_Callback(hObject, eventdata, handles)
-% hObject    handle to pb_replot (see GCBO)
+% --- Executes on mouse press over axes background.
+function axes_Track_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to axes_OE_ (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-for i = 1:5
-    for j = 1:5
-        plot_axes_OE(handles, 0, [num2str(i) num2str(j)]);
-    end
-end
-
-
-% --- Executes on button press in pb_Test1.
-function pb_Test1_Callback(hObject, eventdata, handles)
-% hObject    handle to pb_Test1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-globals;
-figure
-plot3(Xist.x0, Xist.y0, Xist.z0)
-
-% --- Executes on button press in pb_Test2.
-function pb_Test2_Callback(hObject, eventdata, handles)
-% hObject    handle to pb_Test2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-globals;
-figure
-plot(tmod, Xist.r - Xist.r(1), tmod, Xist.A - Xist.A(1))
+dig = get(hObject, 'Tag'); dig = dig(end-1:end);
+plot_axes_Track(handles, next_hF(), dig)
 
 
 % --- Executes on button press in pb_Track.
@@ -355,8 +199,6 @@ function pb_Track_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_Track (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-globals;
 
 
 % --- Executes on button press in pb_True.
@@ -374,3 +216,11 @@ function pb_Tracking_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.pan_Orbital_Elements, 'Visible', 'off');
 set(handles.pan_Tracking, 'Visible', 'on');
+
+
+% --- Executes on button press in pb_Solve.
+function pb_Solve_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_Solve (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+solve_wo_noise(handles);

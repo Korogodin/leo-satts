@@ -1,22 +1,26 @@
 try 
-    close(handle_fig_main);
+    close(handle_fig_main); % Close old output form
 end
 
 close all
 clear 
 clc
+
 globals;
 
-addpath([pwd '/func/tracking']);
-addpath([pwd '/func/interface']);
+addpath([pwd '/func/tracking']); % Functions for tracking algorithm
+addpath([pwd '/func/solve']); % Functions for solving without noise
+addpath([pwd '/func/interface']); % Functions for interface
 
 Tmod = 3.2*60*60;  %[s], duration of the simulation
 
-hF_cont = 0; % Figure's handles
+% Magic constants
+hF_cont = 0; % Last figure's handles
 Font_Size = 8; % Font size for output interface
 mu_earth = 3.9860044e14; % Gravity constant
 options_solve = optimset('Display','off');  % Turn off display for fsolve
 
+% Load true trajectory of SV
 load TrueTrajectory.mat
 Nmod = fix(Tmod/T);
 if Nmod > Nmod_max
