@@ -1,9 +1,20 @@
 load Ephem.mat
 
-fprintf('True traectory calculation:\n');
+fprintf('True trajectory calculation:\n');
 fprintf('- read and interpolation...');
 % t_eph = Ephem(:, 4)*24*60*60 + Ephem(:, 5)*60*60 + Ephem(:, 6)*60 + + Ephem(:, 7)*60;
 % t_eph = t_eph - t_eph(1);
+
+h = 600e3;
+r_e = 6371e3;
+N_r = 2.6561e+07 / (r_e + h);
+
+Tmod = 24*60*60;
+T = 1;
+dTmod = T * N_r^(3/2); % [s]
+tmod = 0:dTmod:Tmod;
+Nmod = length(tmod);
+Nmod_max = Nmod;
 
 toe_eph = Ephem(:, 19); toe_eph = toe_eph - toe_eph(1);
 Xist.Crs = interp1(toe_eph, Ephem(:, 12), tmod, 'pchip')/ N_r;
@@ -41,7 +52,7 @@ Xist.x0 = nan(1, Nmod); Xist.y0 = nan(1, Nmod); Xist.z0 = nan(1, Nmod);
 Xist = get_orbit_XYZ(Xist, 1, Nmod, pi);
 
 tmod = tmod / (N_r^(3/2));
-Tmod = tmod / (N_r^(3/2));
+Tmod = Tmod / (N_r^(3/2));
 dTmod = T;
 
 Xist.d_omega = diff(Xist.omega) / dTmod;
@@ -55,6 +66,8 @@ Xist.dd_Omega = diff(Xist.d_Omega) / dTmod;
 Xist.dd_Omega(end+1) = Xist.dd_Omega(end);
 Xist.d_lambda = diff(Xist.lambda) / dTmod;
 Xist.d_lambda(end+1) = Xist.d_lambda(end);
+Xist.dd_lambda = diff(Xist.d_lambda) / dTmod;
+Xist.dd_lambda(end+1) = Xist.dd_lambda(end);
 
 Xist.d_i = diff(Xist.i) / dTmod;
 Xist.d_i(end+1) = Xist.d_i(end);
@@ -99,16 +112,5 @@ Xist.dd_p(end+1) = Xist.dd_p(end);
     get_vector_VxVyVz(Xist.r, Xist.d_r, Xist.lambda, ...
                       Xist.i, Xist.u, Xist.d_u, ...
                       Xist.x0, Xist.y0, Xist.z0);
-% 
-% Xist.x0 = Xist.x0 / N_r;
-% Xist.y0 = Xist.y0 / N_r;
-% Xist.z0 = Xist.z0 / N_r;
-
-% Xist.d_x0 = diff(Xist.x0) / dTmod;
-% Xist.d_x0(end+1) = Xist.d_x0(end);
-% Xist.d_y0 = diff(Xist.y0) / dTmod;
-% Xist.d_y0(end+1) = Xist.d_y0(end);
-% Xist.d_z0 = diff(Xist.z0) / dTmod;
-% Xist.d_z0(end+1) = Xist.d_z0(end);
-
+save('TrueTrajectory.mat', 'Xist', 'T', 'Nmod_max', 'dTmod', 'tmod');
 fprintf('complete\n');
