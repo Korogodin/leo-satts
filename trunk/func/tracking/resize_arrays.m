@@ -52,7 +52,11 @@ Xist.dd_p = Xist.dd_p(1:Nmod);
 Xist.d_x0 = Xist.d_x0(1:Nmod);
 Xist.d_y0 = Xist.d_y0(1:Nmod);
 Xist.d_z0 = Xist.d_z0(1:Nmod);
-           
+Xist.x = Xist.x(1:Nmod);
+Xist.y = Xist.y(1:Nmod);
+Xist.z = Xist.z(1:Nmod);
+
+
 % Estimations and extrapolations of Kalman 
 Xest.e = nan(1, Nmod);
 Xest.d_e = nan(1, Nmod);
@@ -72,6 +76,11 @@ Xest.z0 = nan(1, Nmod);
 Xest.d_x0 = nan(1, Nmod);
 Xest.d_y0 = nan(1, Nmod);
 Xest.d_z0 = nan(1, Nmod);
+Xest.lambda = nan(1, Nmod);
+Xest.x = nan(1, Nmod);
+Xest.y = nan(1, Nmod);
+Xest.z = nan(1, Nmod);
+Xest.X = nan(12,1);
 Xextr = Xest; % - extrapolation
 
 % Without noise solution

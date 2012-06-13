@@ -1,6 +1,6 @@
 function X = get_orbit_XYZ(X, start_i, stop_i, E0)
 
-global options_solve Nmod
+global options_solve Nmod omega_e
 
 if ~isnan(E0)
     X.E(start_i) = fsolve(@(E)(E-X.e(start_i)*sin(E) - X.M0(start_i)), E0, options_solve);
@@ -34,11 +34,13 @@ X.r = X.A.*(1 - X.e.*cos(X.E)) + X.Crs .* sin(2*phi) + X.Crc .* cos(2*phi);
 X.i = X.i0 + X.Cis .* sin(2*phi) + X.Cic .* cos(2*phi);
 % X.i = X.i0;
 
-X.lambda = X.Omega;
+X.lambda = X.Omega - omega_e*tmod;
 
 for i = 1:Nmod
-    xyz = U3(-X.lambda(i))*U1(-X.i(i))*U3(-X.u(i))*[X.r(i); 0; 0];
+    xyz = U3(-X.Omega(i))*U1(-X.i(i))*U3(-X.u(i))*[X.r(i); 0; 0];
     X.x0(i) = xyz(1); X.y0(i) = xyz(2); X.z0(i) = xyz(3);
+    xyz = U3(-X.lambda(i))*U1(-X.i(i))*U3(-X.u(i))*[X.r(i); 0; 0];
+    X.x(i) = xyz(1); X.y(i) = xyz(2); X.z(i) = xyz(3);
 end
 
 end

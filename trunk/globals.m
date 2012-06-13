@@ -1,5 +1,5 @@
 
-global Font_Size mu_earth 
+global Font_Size mu_earth omega_e
 
 global SV_GLO_List SV_GLO  
 
