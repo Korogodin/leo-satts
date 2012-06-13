@@ -53,7 +53,26 @@ Xist.d_x0 = Xist.d_x0(1:Nmod);
 Xist.d_y0 = Xist.d_y0(1:Nmod);
 Xist.d_z0 = Xist.d_z0(1:Nmod);
            
-% Memory allocation 
-Xest = Xist; % - estimation
-Xextr = Xist; % - extrapolation
-Xest_won = Xest; % - without noise solution
+% Estimations and extrapolations of Kalman 
+Xest.e = nan(1, Nmod);
+Xest.d_e = nan(1, Nmod);
+Xest.p = nan(1, Nmod);
+Xest.d_p = nan(1, Nmod);
+Xest.theta = nan(1, Nmod);
+Xest.d_theta = nan(1, Nmod);
+Xest.omega = nan(1, Nmod);
+Xest.d_omega = nan(1, Nmod);
+Xest.Omega = nan(1, Nmod);
+Xest.d_Omega = nan(1, Nmod);
+Xest.i = nan(1, Nmod);
+Xest.d_i = nan(1, Nmod);
+Xest.x0 = nan(1, Nmod);
+Xest.y0 = nan(1, Nmod);
+Xest.z0 = nan(1, Nmod);
+Xest.d_x0 = nan(1, Nmod);
+Xest.d_y0 = nan(1, Nmod);
+Xest.d_z0 = nan(1, Nmod);
+Xextr = Xest; % - extrapolation
+
+% Without noise solution
+Xest_won = Xest; 

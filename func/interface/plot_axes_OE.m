@@ -87,13 +87,17 @@ switch ij
         YLab = '\Omega_{dot}, rad/s';        
         titl = 'Derivative of the longitude of the ascending node';
     case '43'
-    case '44'
         Y1 = Xist.x0;
         Y2 = Xist.y0;
         Y3 = Xist.z0;
         YLab = 'x_0, y_0, z_0, m'; 
         titl = 'Coordinates in the inertial coordinate system';
-    case '45'
+    case '44'
+        Y1 = Xist.d_x0;
+        Y2 = Xist.d_y0;
+        Y3 = Xist.d_z0;
+        YLab = 'Vx, Vy, Vz, m'; 
+        titl = 'Velocities in the inertial coordinate system';
         
 end
 
