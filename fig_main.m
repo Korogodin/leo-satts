@@ -88,6 +88,12 @@ for i = 1:5
         plot_axes_OE(handles, 0, [num2str(i) num2str(j)]);
         set(eval(['handles.axes_OE_' num2str(i) num2str(j)]), 'Tag', ['axes_OE_' num2str(i) num2str(j)]);
         set(eval(['handles.axes_OE_' num2str(i) num2str(j)]), 'ButtonDownFcn', str2func('@(hObject,eventdata)fig_main(''axes_OE_ButtonDownFcn'',hObject,eventdata,guidata(hObject))'));
+        pos = get(eval(['handles.axes_OE_' num2str(i) num2str(j)]), 'Position');
+        pos(1) = pos(1) + (j-1)*45;
+        pos(2) = pos(2) - (i-1)*32 - 35;
+        pos(3) = pos(3) + 40;
+        pos(4) = pos(4) + 35;
+        set(eval(['handles.axes_OE_' num2str(i) num2str(j)]), 'Position', pos);
     end
 end
 for i = 1:5
@@ -96,8 +102,15 @@ for i = 1:5
         plot_axes_Track(handles, 0, [num2str(i) num2str(j)]);
         set(eval(['handles.axes_Track_' num2str(i) num2str(j)]), 'Tag', ['axes_Track_' num2str(i) num2str(j)]);
         set(eval(['handles.axes_Track_' num2str(i) num2str(j)]), 'ButtonDownFcn', str2func('@(hObject,eventdata)fig_main(''axes_Track_ButtonDownFcn'',hObject,eventdata,guidata(hObject))'));
+        pos = get(eval(['handles.axes_Track_' num2str(i) num2str(j)]), 'Position');
+        pos(1) = pos(1) + (j-1)*45;
+        pos(2) = pos(2) - (i-1)*32 - 35;
+        pos(3) = pos(3) + 40;
+        pos(4) = pos(4) + 35;
+        set(eval(['handles.axes_Track_' num2str(i) num2str(j)]), 'Position', pos);        
     end
 end
+plot_axes_Earth(handles, 0);
 globals;
 
 % Set constants
@@ -119,76 +132,13 @@ function varargout = fig_main_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% --- Executes on button press in pb_Run.
-function pb_Run_Callback(hObject, eventdata, handles)
-% hObject    handle to pb_Run (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-plot_axes_Earth(handles, 0);
-   
-
-%> ======================================================================
-%> @brief 3D-Earth, SV's orbits
-%> @param handles Main handles struct
-%> @param hF Flag (handle) for separate window
-% ======================================================================
-function plot_axes_Earth(handles, hF)
-globals;
-
-R_earth_pol = 6356777; % Polar radius of Earth
-R_earth_equa = 6378160; % Equatorial radius of Earth
-Earth_axe_angl = deg2rad(23); 
-
-[x,y,z] = sphere(50);
-x = R_earth_equa * x; y = R_earth_equa * y; z = R_earth_pol * z;
-load('topo.mat','topo','topomap1');
-% cla reset
-% axis square off
-props.AmbientStrength = 0.1;
-props.DiffuseStrength = 1;
-props.SpecularColorReflectance = .5;
-props.SpecularExponent = 20;
-props.SpecularStrength = 1;
-props.FaceColor= 'texture';
-props.EdgeColor = 'none';
-props.FaceLighting = 'phong';
-props.Cdata = topo;
-alpha_earth = pi/1;
-x_new = x*cos(alpha_earth) + y*sin(alpha_earth);
-y_new = -x*sin(alpha_earth) + y*cos(alpha_earth);
-
-if hF 
-    figure(hF); 
-    hA = gca;
-else
-    set(handles.fig_main,'CurrentAxes', handles.axes_3D)
-    hA = handles.axes_3D;
-end
-
-cla(hA);
-set(hA, 'FontSize', Font_Size);
-surface(x_new, y_new, z, props);
-light('position',[-1 0 1*tan(Earth_axe_angl)]*R_earth_equa*2);
-view(3)        
-hold(hA, 'on');
-for i = 1:length(SV_GLO_List)
-    plot3(hA, eval([SV_GLO_List{i} '.SVOrbit.X0']), ...
-              eval([SV_GLO_List{i} '.SVOrbit.Y0']), ...
-              eval([SV_GLO_List{i} '.SVOrbit.Z0']));   
-end
-hold(hA, 'off');
-xlim([-3e7 3e7]); ylim([-3e7 3e7]); zlim([-3e7 3e7]);
-title(hA, 'Space View');
-    
-
 % --- Executes on mouse press over axes background.
 function axes_3D_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to axes_3D (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 globals;
-hF_cont = hF_cont + 1;
-plot_axes_Earth(handles, hF_cont);
+plot_axes_Earth(handles, next_hF());
 
 
 % --- Executes on mouse press over axes background.

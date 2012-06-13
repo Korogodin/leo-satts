@@ -17,7 +17,8 @@ Tmod = 3.2*60*60;  %[s], duration of the simulation
 % Magic constants
 hF_cont = 0; % Last figure's handles
 Font_Size = 8; % Font size for output interface
-mu_earth = 3.9860044e14; % Gravity constant
+mu_earth = 3.9860044e14; % [m^3/s^2] Gravity constant
+omega_e = 0.7292115e-4; % [rad/s] Earth's rotation rate
 options_solve = optimset('Display','off');  % Turn off display for fsolve
 
 % Load true trajectory of SV
