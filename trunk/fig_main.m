@@ -22,7 +22,7 @@ function varargout = fig_main(varargin)
 
 % Edit the above text to modify the response to help fig_main
 
-% Last Modified by GUIDE v2.5 08-Jun-2012 15:21:01
+% Last Modified by GUIDE v2.5 13-Jun-2012 12:18:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -73,6 +73,13 @@ FigHeigth = 670;
 FigHeigth_border = fix((ScreenSize(4) - FigHeigth)/2);
 set(handles.fig_main, 'Position', [FigWeigth_border FigHeigth_border FigWeigth FigHeigth]);
 set(handles.pan_Tracking, 'Position', get(handles.pan_Orbital_Elements, 'Position'));
+set(handles.pan_Sch, 'Position', get(handles.pan_Orbital_Elements, 'Position'));
+
+% Draw functional scheme
+fig_main_pictureData = imread('Sch1.png');
+image(fig_main_pictureData, 'Parent', handles.axes_Sch1);
+set(handles.axes_Sch1, 'XTick', []);
+set(handles.axes_Sch1, 'YTick', []);
 
 % Set widget's function
 for i = 1:5
@@ -81,6 +88,14 @@ for i = 1:5
         plot_axes_OE(handles, 0, [num2str(i) num2str(j)]);
         set(eval(['handles.axes_OE_' num2str(i) num2str(j)]), 'Tag', ['axes_OE_' num2str(i) num2str(j)]);
         set(eval(['handles.axes_OE_' num2str(i) num2str(j)]), 'ButtonDownFcn', str2func('@(hObject,eventdata)fig_main(''axes_OE_ButtonDownFcn'',hObject,eventdata,guidata(hObject))'));
+    end
+end
+for i = 1:5
+    for j = 1:5
+        set(eval(['handles.axes_Track_' num2str(i) num2str(j)]), 'DrawMode', 'fast');
+        plot_axes_Track(handles, 0, [num2str(i) num2str(j)]);
+        set(eval(['handles.axes_Track_' num2str(i) num2str(j)]), 'Tag', ['axes_Track_' num2str(i) num2str(j)]);
+        set(eval(['handles.axes_Track_' num2str(i) num2str(j)]), 'ButtonDownFcn', str2func('@(hObject,eventdata)fig_main(''axes_Track_ButtonDownFcn'',hObject,eventdata,guidata(hObject))'));
     end
 end
 globals;
@@ -199,15 +214,29 @@ function pb_Track_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_Track (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+std_x = str2double(get(handles.ed_stdX, 'String'));
+if ~((std_x >= 0)&&(std_x < 1000))
+    msgbox('Coordinate''s RMS is incorrect', 'Error', 'error');
+    set(handles.ed_stdX, 'String', '10');
+    return
+end
+std_V = str2double(get(handles.ed_stdV, 'String'));
+if ~((std_V >= 0)&&(std_V < 5))
+    msgbox('Velocity''s RMS is incorrect', 'Error', 'error');
+    set(handles.ed_stdV, 'String', '0.01');
+    return
+end
+track_with_noise(handles, std_x, std_V);
 
 % --- Executes on button press in pb_True.
 function pb_True_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_True (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(handles.pan_Tracking, 'Visible', 'off');
 set(handles.pan_Orbital_Elements, 'Visible', 'on');
+set(handles.pan_Tracking, 'Visible', 'off');
+set(handles.pan_Sch, 'Visible', 'off');
+
 
 % --- Executes on button press in pb_Tracking.
 function pb_Tracking_Callback(hObject, eventdata, handles)
@@ -216,6 +245,7 @@ function pb_Tracking_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.pan_Orbital_Elements, 'Visible', 'off');
 set(handles.pan_Tracking, 'Visible', 'on');
+set(handles.pan_Sch, 'Visible', 'off');
 
 
 % --- Executes on button press in pb_Solve.
@@ -224,3 +254,59 @@ function pb_Solve_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 solve_wo_noise(handles);
+
+
+
+function ed_stdX_Callback(hObject, eventdata, handles)
+% hObject    handle to ed_stdX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ed_stdX as text
+%        str2double(get(hObject,'String')) returns contents of ed_stdX as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function ed_stdX_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ed_stdX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function ed_stdV_Callback(hObject, eventdata, handles)
+% hObject    handle to ed_stdV (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ed_stdV as text
+%        str2double(get(hObject,'String')) returns contents of ed_stdV as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function ed_stdV_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ed_stdV (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pb_Sch.
+function pb_Sch_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_Sch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.pan_Orbital_Elements, 'Visible', 'off');
+set(handles.pan_Tracking, 'Visible', 'off');
+set(handles.pan_Sch, 'Visible', 'on');

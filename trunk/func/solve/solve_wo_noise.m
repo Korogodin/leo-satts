@@ -1,7 +1,7 @@
 %> ======================================================================
 %> @brief Calculate true osculating elements for true trajectory
 %> @param handles Main handles struct
-% ======================================================================
+%> ======================================================================
 function solve_wo_noise( handles )
 
 globals;
@@ -14,6 +14,9 @@ Xs(4) = Xist.i(1);
 Xs(5) = Xist.e(1);
 Xs(6) = Xist.p(1);
     
+set(handles.pb_Solve, 'Enable', 'off');
+drawnow
+pause(0.01);
 for i = 1:Nmod
     
     % Calculating osculating elements by means of the true coordinates and velocities
@@ -21,22 +24,29 @@ for i = 1:Nmod
          Xist.d_x0(i), Xist.d_y0(i), Xist.d_z0(i))), Xs, options_solve);
     
     % Saving of results
-    Xest_won.theta(i) = Xs(1);
+    Xest_won.e(i) = Xs(5);
+    Xest_won.theta(i) = Xs(1);    
     Xest_won.omega(i) = Xs(2);
     Xest_won.Omega(i) = Xs(3);
     Xest_won.i(i) = Xs(4);
-    Xest_won.e(i) = Xs(5);
     Xest_won.p(i) = Xs(6);
     Xest_won.r(i) = Xest_won.p(i) ./ (1 + Xest_won.e(i)*cos(Xest_won.theta(i)));
 
     % Get coordinates for oculating elements (for test)
-    [Xest_won.x0(i) Xest_won.y0(i) Xest_won.z0(i)] = get_vector_XYZ( Xest_won.r(i),...
-                Xest_won.Omega(i), Xest_won.i(i), Xest_won.theta(i)+Xest_won.omega(i) );
+    [Xest_won.x0(i) Xest_won.y0(i) Xest_won.z0(i) ...
+        Xest_won.d_x0(i) Xest_won.d_y0(i) Xest_won.d_z0(i)] = ...
+        get_vector_XV( Xest_won.e(i), Xest_won.p(i), Xest_won.theta(i), ...
+                           Xest_won.omega(i), Xest_won.Omega(i), Xest_won.i(i));    
+%     [Xest_won.x0(i) Xest_won.y0(i) Xest_won.z0(i)] = get_vector_XYZ( Xest_won.r(i),...
+%                 Xest_won.Omega(i), Xest_won.i(i), Xest_won.theta(i)+Xest_won.omega(i) );
 
-    if ~mod(i, fix(Nmod/10))
-        fprintf('Done %.0f %% \n', i/Nmod*100);
+    if ~mod(i, fix(Nmod/100))
+        set(handles.txt_Solve, 'String', sprintf('%.0f %%', i/Nmod*100));
     end
+    drawnow
+    pause(0.01);
 end
+set(handles.txt_Solve, 'String', sprintf('%.0f %%', 100));
 
 % Calculation of derivatives
 Xest_won.d_theta = diff(Xest_won.theta)/dTmod;
@@ -54,6 +64,20 @@ Xest_won.d_p(end+1)=Xest_won.d_p(end);
 Xest_won.d_r = diff(Xest_won.r)/dTmod;
 Xest_won.d_r(end+1)=Xest_won.d_r(end);
     
+for i = 1:Nmod
+        % Saving of results
+    if Xest_won.e(i) > 0;
+        Xest_won.e(i) = Xest_won.e(i);
+        Xest_won.theta(i) = mod_pm_pi(Xest_won.theta(i));    
+        Xest_won.omega(i) = mod_pm_pi(Xest_won.omega(i));
+    else
+        Xest_won.e(i) = -Xest_won.e(i);
+        Xest_won.theta(i) = mod_pm_pi(-Xest_won.theta(i));    
+        Xest_won.omega(i) = mod_pm_pi(-Xest_won.omega(i));
+    end    
+    Xest_won.Omega(i) = mod_pm_pi(Xest_won.Omega(i));
+    Xest_won.i(i) = mod_pm_pi(Xest_won.i(i));
+end
 
 % Output results to form
 for i = 1:5
@@ -67,6 +91,9 @@ end
 
 set(handles.pan_Orbital_Elements, 'Visible', 'off');
 set(handles.pan_Tracking, 'Visible', 'on');
+set(handles.pb_Track, 'Enable', 'on');
+set(handles.ed_stdX, 'Enable', 'on');
+set(handles.ed_stdV, 'Enable', 'on');
 
 end
 
